@@ -27,7 +27,7 @@ if (-not (Test-Administrator)) {
 }
 
 # Variables
-$KMS_Server = "KMS16.QassimU.local"
+$KMS_Server = "KMS.abc.local"
 $KMS_Port = 1688
 
 try {
