@@ -1,55 +1,83 @@
-﻿<#
+<#!
 .SYNOPSIS
-    Get all AD user details including last logon, inactivity days, creation date, modification date, and last password set.
+    Get full AD user details from a specific OU including group memberships, password settings, and activity data.
 
 .DESCRIPTION
-    This script retrieves all users in the specified OU from on-prem Active Directory, and includes:
-    - Name
-    - SamAccountName
-    - Enabled
-    - LastLogonDate
-    - DaysInactive
-    - Created (whenCreated)
-    - Modified (whenChanged)
-    - PasswordLastSet
+    This script retrieves all users in the specified OU from Active Directory with detailed account info:
+    - Display and account info
+    - Password settings and lockout status
+    - Group memberships
+    - OU and last activity info
+    - Sorted by inactivity days
 
 .EXAMPLE
-    .\Get-ADUsers-FullDetails.ps1
+    .\Get-ADUsers-Details.ps1
 
+.NOTES
+    Author  : Mohammad Abdelkader
+    Website : momar.tech
+    Date    : 2025-06-25
+    Version : 2.2
 #>
 
-# Load AD module
+
+#====================[ Configuration ]====================#
+$OU = "OU=Employees,OU=QU,DC=QassimU,DC=local"
+$Today = Get-Date
+$TimeStamp = $Today.ToString("yyyyMMdd-HHmmss")
+$ExportFolder = "C:\Reports"
+
+if (-not (Test-Path $ExportFolder)) {
+    New-Item -Path $ExportFolder -ItemType Directory -Force | Out-Null
+}
+
+$ExportPath = "$ExportFolder\ADUsers-Details-$TimeStamp.csv"
+
+#====================[ Load AD Module ]====================#
 Import-Module ActiveDirectory
 
-# Set the OU
-$OU = "OU=Operation Dept,DC=QassimU,DC=local"
+#====================[ Collect Users ]====================#
+$Users = Get-ADUser -SearchBase $OU -Filter * -Properties DisplayName, LastLogonDate, Enabled, SamAccountName, whenCreated, whenChanged, PasswordLastSet, MemberOf, PasswordNeverExpires, LockedOut, CannotChangePassword, UserPrincipalName, Title, Department
 
-# Get today’s date
-$Today = Get-Date
+$Results = foreach ($User in $Users) {
+    # Get OU from DN
+    $UserOU = ($User.DistinguishedName -split ",(?=OU=)")[1..99] -join ","
 
-# Fetch users and enrich with additional properties
-$Users = Get-ADUser -SearchBase $OU -Filter * -Properties DisplayName, LastLogonDate, Enabled, SamAccountName, whenCreated, whenChanged, PasswordLastSet |
-    Select-Object `
-        Name,
-        SamAccountName,
-        Enabled,
-        whenCreated,
-        whenChanged,
-        LastLogonDate,
-        @{Name = "DaysInactive"; Expression = {
-            if ($_.LastLogonDate) {
-                ($Today - $_.LastLogonDate).Days
-            } else {
-                "Never Logged In"
-            }
-        }},
-        PasswordLastSet
+    # Resolve group names
+    $GroupNames = foreach ($dn in $User.MemberOf) {
+        try {
+            (Get-ADGroup $dn -ErrorAction Stop).Name
+        } catch {
+            "[Unknown Group]"
+        }
+    }
+    $GroupsJoined = $GroupNames -join ", "
 
-# Display results
-$Users | Sort-Object DaysInactive -Descending | Format-Table -AutoSize
+    # Build result object
+    [PSCustomObject]@{
+        DisplayName          = $User.DisplayName
+        SamAccountName       = $User.SamAccountName
+        UserPrincipalName    = $User.UserPrincipalName
+        Title                = $User.Title
+        Department           = $User.Department
+        Enabled              = $User.Enabled
+        OU                   = $UserOU
+        Groups               = $GroupsJoined
+        Created              = $User.whenCreated
+        Modified             = $User.whenChanged
+        LastLogonDate        = $User.LastLogonDate
+        DaysInactive         = if ($User.LastLogonDate) { ($Today - $User.LastLogonDate).Days } else { "Never Logged In" }
+        PasswordLastSet      = $User.PasswordLastSet
+        PasswordNeverExpires = $User.PasswordNeverExpires
+        LockedOut            = $User.LockedOut
+        CannotChangePassword = $User.CannotChangePassword
+    }
+}
 
-# Export to CSV
-$ExportPath = "$env:USERPROFILE\Desktop\OperationDept_UserDetails.csv"
-$Users | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+#====================[ Console Output ]====================#
+$Results | Sort-Object DaysInactive -Descending | Format-Table -AutoSize
+
+#====================[ Export to CSV ]====================#
+$Results | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
 
 Write-Host "`n✅ Report saved to: $ExportPath" -ForegroundColor Green
