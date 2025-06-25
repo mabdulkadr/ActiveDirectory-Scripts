@@ -20,7 +20,7 @@
 # Configuration
 # =============================
 
-$OU = "OU=External Users,OU=Resaerch Project,OU=QU,DC=QassimU,DC=local"
+$OU = "OU=External Users,OU=Resaerch Project,OU=QU,DC=ABC,DC=local"
 $ExportCSV = $true
 
 # =============================
