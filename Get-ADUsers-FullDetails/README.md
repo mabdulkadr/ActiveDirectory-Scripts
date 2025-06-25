@@ -1,5 +1,5 @@
 
-# Get-ADUsers-FullDetails.ps1
+# Get-ADUsers-Details.ps1
 
 ![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -7,7 +7,7 @@
 
 ## Overview
 
-`Get-ADUsers-FullDetails.ps1` is a PowerShell script that retrieves comprehensive information about all Active Directory users within a specified Organizational Unit (OU). It calculates inactivity in days and displays key user account attributes such as creation, modification, last login, and password last set date.
+`Get-ADUsers-Details.ps1` is a PowerShell script that retrieves comprehensive information about all Active Directory users within a specified Organizational Unit (OU). It calculates inactivity in days and displays key user account attributes such as creation, modification, last login, and password last set date.
 
 This script is ideal for identifying stale or inactive accounts and for reporting purposes.
 
@@ -49,7 +49,7 @@ $OU = "OU=Operation Dept,DC=QassimU,DC=local"
 ### Step 2: Run the Script
 
 ```powershell
-.\Get-ADUsers-FullDetails.ps1
+.\Get-ADUsers-Details.ps1
 ```
 
 ---
@@ -83,7 +83,7 @@ C:\Users\<YourName>\Desktop\OperationDept_UserDetails.csv
 ## Example
 
 ```powershell
-.\Get-ADUsers-FullDetails.ps1
+.\Get-ADUsers-Details.ps1
 ```
 
 This command will generate a full user report for the OU `"OU=Operation Dept,DC=QassimU,DC=local"` and export it to your desktop.
