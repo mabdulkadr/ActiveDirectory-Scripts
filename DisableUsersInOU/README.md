@@ -32,7 +32,7 @@ Optionally, it can export a report of all processed accounts to a `.csv` file.
    Open the script file and set the following variable:
 
    ```powershell
-   $OU = "OU=Employees,OU=QU,DC=QassimU,DC=local"
+   $OU = "OU=Employees,OU=QU,DC=ABC,DC=local"
 ````
 
 Optionally, toggle CSV export:
@@ -76,12 +76,12 @@ $ExportCSV = $true
 ## Example Output
 
 ```text
-[INFO] Starting user disable process in OU: OU=Employees,OU=QU,DC=QassimU,DC=local
+[INFO] Starting user disable process in OU: OU=Employees,OU=QU,DC=ABC,DC=local
 [SUCCESS] Disabled user: jdoe
 [ERROR] Failed to disable user: test.user. Error: Access is denied.
 
 ======================= SUMMARY =======================
-OU:                  OU=Employees,OU=QU,DC=QassimU,DC=local
+OU:                  OU=Employees,OU=QU,DC=ABC,DC=local
 Total Users Found:   27
 Successfully Disabled: 26
 Failed to Disable:     1
