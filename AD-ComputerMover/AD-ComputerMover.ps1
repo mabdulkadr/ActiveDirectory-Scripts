@@ -16,7 +16,7 @@
 Import-Module ActiveDirectory
 
 # Define the base OU for searching computers and sub-OUs
-$ComputersOU = "OU=Computers,OU=Osrah,DC=osrah,DC=sa"  # Update this as needed
+$ComputersOU = "OU=Computers,DC=abc,DC=local"  # Update this as needed
 
 # Function to move computers to matching OUs based on name prefix
 function Move-ComputersToMatchingOU {

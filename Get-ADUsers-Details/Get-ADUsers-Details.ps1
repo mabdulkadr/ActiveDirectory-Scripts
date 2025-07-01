@@ -22,7 +22,7 @@
 
 
 #====================[ Configuration ]====================#
-$OU = "OU=Employees,OU=QU,DC=QassimU,DC=local"
+$OU = "OU=Employees,DC=abc,DC=local"
 $Today = Get-Date
 $TimeStamp = $Today.ToString("yyyyMMdd-HHmmss")
 $ExportFolder = "C:\Reports"
