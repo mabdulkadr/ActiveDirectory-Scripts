@@ -15,9 +15,7 @@
     Requires: RSAT (ActiveDirectory module)
 #>
 
-# =========================
-# Configuration
-# =========================
+# ========================= Configuration =========================
 
 $GroupName = "Blind-UserLogin-Exception"
 $CsvPath = "C:\Users\opm.abdelkader\Desktop\Add-UsersFromCSVToGroup\users.csv"
@@ -27,9 +25,7 @@ $SuccessCount = 0
 $FailureCount = 0
 $AlreadyCount = 0
 
-# =========================
-# Display Group Details
-# =========================
+# ========================= Display Group Details =========================
 
 try {
     $Group = Get-ADGroup -Identity $GroupName -Properties Description
@@ -46,9 +42,7 @@ catch {
     exit
 }
 
-# =========================
-# Import and Process Users
-# =========================
+# ========================= Import and Process Users =========================
 
 $UserIDs = Import-Csv -Path $CsvPath | Select-Object -ExpandProperty UserID
 
@@ -79,9 +73,7 @@ foreach ($id in $UserIDs) {
     }
 }
 
-# =========================
-# Summary
-# =========================
+# ========================= Summary =========================
 
 Write-Host "`n============= Summary =============" -ForegroundColor Cyan
 Write-Host "✅ Total Users Added      : $SuccessCount" -ForegroundColor Green

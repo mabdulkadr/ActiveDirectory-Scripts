@@ -16,16 +16,12 @@
     Version : 1.1
 #>
 
-# =============================
-# Configuration
-# =============================
+# ============================= Configuration =============================
 
 $OU = "OU=External Users,OU=Resaerch Project,OU=QU,DC=ABC,DC=local"
 $ExportCSV = $true
 
-# =============================
-# Logging Setup
-# =============================
+# ============================= Logging Setup =============================
 
 $LogPath = "C:\Logs"
 if (-not (Test-Path $LogPath)) { New-Item -Path $LogPath -ItemType Directory -Force }
@@ -47,9 +43,7 @@ function Write-Log {
     Add-Content -Path $LogFile -Value "[$Level] $(Get-Date -Format 'u') - $Message"
 }
 
-# =============================
-# Main Execution
-# =============================
+# ============================= Main Execution =============================
 
 try {
     Write-Log "Starting user disable process in OU: $OU" -Level "INFO"
@@ -93,9 +87,7 @@ try {
             Write-Log "Exported results to: $CsvFile" -Level "SUCCESS"
         }
 
-        # =============================
-        # Summary Section
-        # =============================
+        # ============================= Summary Section =============================
         $Total   = $DisabledResults.Count
         $Success = ($DisabledResults | Where-Object { $_.Status -eq 'Disabled' }).Count
         $Failed  = ($DisabledResults | Where-Object { $_.Status -eq 'Failed' }).Count

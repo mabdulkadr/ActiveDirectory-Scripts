@@ -12,9 +12,9 @@
     Date  : 2025-06-19
 #>
 
-# =======================
-# Ensure ActiveDirectory Module is Installed and Imported
-# =======================
+
+# ========================= Ensure ActiveDirectory Module is Installed and Imported =========================
+
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
     Write-Host "⚠️ 'ActiveDirectory' module not found. Attempting to install RSAT tools..." -ForegroundColor Yellow
 
@@ -36,9 +36,8 @@ try {
     exit 1
 }
 
-# =======================
-# Configuration
-# =======================
+# ========================= Configuration =========================
+
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $BasePath  = "C:\ADGroupsReport"
 $LogFile   = "$BasePath\ADGroupsExport_$Timestamp.log"
@@ -49,10 +48,8 @@ if (!(Test-Path $BasePath)) {
     Write-Host "📁 Created output directory: $BasePath" -ForegroundColor Cyan
 }
 
+# ========================= Logging Function =========================
 
-# =======================
-# Logging Function
-# =======================
 function Write-Log {
     param (
         [string]$Message,
@@ -75,9 +72,8 @@ function Write-Log {
 
 Write-Log "🔄 Starting unified Active Directory group export..." -Level "INFO"
 
-# =======================
-# Main Logic
-# =======================
+# ========================= Main Logic =========================
+
 $GroupReport = @()
 
 $Groups = Get-ADGroup -Filter * -Properties mail, description, GroupScope, GroupCategory, Members, whenCreated, whenChanged, displayName
@@ -152,9 +148,7 @@ foreach ($Group in $Groups) {
     }
 }
 
-# =======================
-# Export CSV
-# =======================
+# ========================= Export CSV =========================
 try {
     $GroupReport | Export-Csv -Path $CsvOutput -NoTypeInformation -Encoding UTF8
     Write-Log "📁 Exported unified group report to: $CsvOutput" -Level "SUCCESS"
