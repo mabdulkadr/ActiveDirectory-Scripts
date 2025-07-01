@@ -50,9 +50,7 @@ Param(
     [switch]$SendEmail
 )
 
-#...................................
-# Global Variables
-#...................................
+#========================= Global Variables =========================
 
 $allTestedDomainControllers = [System.Collections.Generic.List[Object]]::new()
 $allDomainControllers = [System.Collections.Generic.List[Object]]::new()
@@ -72,9 +70,7 @@ $smtpsettings = @{
     #UseSsl     = $true
 }
 
-#...................................
-# Functions
-#...................................
+#========================= Functions =========================
 
 # This function gets all the domains in the forest.
 Function Get-AllDomains() {

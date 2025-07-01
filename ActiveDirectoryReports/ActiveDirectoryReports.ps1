@@ -21,10 +21,15 @@
     - ActiveDirectory PowerShell module (part of RSAT)
 #>
 
-# ========== GLOBAL SETTINGS ==========
+# ========================= GLOBAL SETTINGS =========================
 
 # Output directory for all reports
 $ReportPath = "C:\ADReports"
+
+if (!(Test-Path $ReportPath)) {
+    New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null
+    Write-Host "📁 Created output directory: $ReportPath" -ForegroundColor Cyan
+}
 
 # Timestamp for filenames
 $NowString = Get-Date -Format "yyyy-MM-dd_HH-mm"
@@ -97,12 +102,9 @@ try {
 }
 If (-not (Test-Path $ReportPath)) { New-Item -Path $ReportPath -ItemType Directory | Out-Null }
 
-# ========== UTILITY FUNCTIONS ==========
+# ========================= UTILITY FUNCTIONS =========================
 
-<#
-.SYNOPSIS
-    Writes a fancy, colored menu header.
-#>
+# Writes a fancy, colored menu header.
 function Write-Header($text) {
     Write-Host ""
     Write-Host ("=" * 65) -ForegroundColor Cyan
@@ -111,12 +113,7 @@ function Write-Header($text) {
     Write-Host ""
 }
 
-<#
-.SYNOPSIS
-    Builds the HTML report with consistent styling, header, and responsive section.
-.DESCRIPTION
-    Accepts a title, the HTML fragment (table), and a precontent block (section title).
-#>
+# Builds the HTML report with consistent styling, header, and responsive section.
 function Build-HtmlReport($title, $fragment, $precontent) {
     return @"
 <!DOCTYPE html>
@@ -143,30 +140,21 @@ function Build-HtmlReport($title, $fragment, $precontent) {
 "@
 }
 
-<#
-.SYNOPSIS
-    Prompts user to open the generated report in their browser (ISE-friendly).
-#>
+# Prompts user to open the generated report in their browser (ISE-friendly).
 function Prompt-OpenReport($path) {
     Write-Host ""
     $resp = Read-Host "Type 'O' and press ENTER to open the last report, or just press ENTER to return"
     if ($resp -eq 'O' -or $resp -eq 'o') { Start-Process $path }
 }
 
-<#
-.SYNOPSIS
-    Simple "press any key" pause that works in all PowerShell hosts.
-#>
+# Simple "press any key" pause that works in all PowerShell hosts.
 function Wait-AnyKey {
     Read-Host "Press ENTER to continue"
 }
 
-# ========== REPORT FUNCTIONS ==========
+# =========================REPORT FUNCTIONS =========================
 
-<#
-.SYNOPSIS
-    Generates a complete report of all AD computer objects.
-#>
+# Generates a complete report of all AD computer objects.
 function Show-CompleteComputerObjectReport {
     Write-Header "Complete Computer Object Report"
     $ReportFile = "$ReportPath\AD_CompleteComputerReport_$NowString.html"
@@ -183,10 +171,7 @@ function Show-CompleteComputerObjectReport {
     }
 }
 
-<#
-.SYNOPSIS
-    Generates a report for all Domain Controllers.
-#>
+# Generates a report for all Domain Controllers.
 function Show-DomainControllersReport {
     Write-Header "Domain Controllers Report"
     $ReportFile = "$ReportPath\AD_DomainControllersReport_$NowString.html"
@@ -202,10 +187,7 @@ function Show-DomainControllersReport {
     }
 }
 
-<#
-.SYNOPSIS
-    Generates a report for all workstations (non-servers).
-#>
+# Generates a report for all workstations (non-servers).
 function Show-WorkstationsReport {
     Write-Header "Workstations Report"
     $ReportFile = "$ReportPath\AD_WorkstationsReport_$NowString.html"
@@ -222,10 +204,7 @@ function Show-WorkstationsReport {
     }
 }
 
-<#
-.SYNOPSIS
-    Generates a report for all Windows Server computers.
-#>
+# Generates a report for all Windows Server computers.
 function Show-ServersReport {
     Write-Header "Servers Report"
     $ReportFile = "$ReportPath\AD_ServersReport_$NowString.html"
@@ -242,10 +221,7 @@ function Show-ServersReport {
     }
 }
 
-<#
-.SYNOPSIS
-    Generates a report showing the enabled/disabled status of computer accounts.
-#>
+# Generates a report showing the enabled/disabled status of computer accounts.
 function Show-ComputerAccountStatusReport {
     Write-Header "Computer Account Status Report"
     $ReportFile = "$ReportPath\AD_ComputerAccountStatusReport_$NowString.html"
@@ -262,10 +238,7 @@ function Show-ComputerAccountStatusReport {
     }
 }
 
-<#
-.SYNOPSIS
-    Generates a report grouping computers by Operating System.
-#>
+# Generates a report grouping computers by Operating System.
 function Show-OSBasedReports {
     Write-Header "OS-Based Computer Report"
     $ReportFile = "$ReportPath\AD_OSBasedReport_$NowString.html"
@@ -289,10 +262,7 @@ function Show-OSBasedReports {
     }
 }
 
-<#
-.SYNOPSIS
-    Runs all report functions in sequence.
-#>
+# Runs all report functions in sequence.
 function Run-AllReports {
     Write-Header "Running ALL REPORTS"
     Show-CompleteComputerObjectReport
@@ -304,12 +274,9 @@ function Run-AllReports {
     Write-Host "`nAll reports have been generated." -ForegroundColor Green
 }
 
-# ========== MAIN MENU ==========
+# ========================= MAIN MENU =========================
 
-<#
-.SYNOPSIS
-    Displays the main menu and handles user input.
-#>
+# Displays the main menu and handles user input.
 function Show-Menu {
     Write-Host ""
     Write-Host ("=" * 65) -ForegroundColor Cyan
@@ -327,7 +294,7 @@ function Show-Menu {
     Write-Host ""
 }
 
-# ========== MAIN EXECUTION LOOP ==========
+# ========================= MAIN EXECUTION LOOP =========================
 
 do {
     Show-Menu
