@@ -18,7 +18,7 @@
 
 # ============================= Configuration =============================
 
-$OU = "OU=External Users,OU=Resaerch Project,OU=QU,DC=ABC,DC=local"
+$OU = "OU=IT,DC=ABC,DC=local"
 $ExportCSV = $true
 
 # ============================= Logging Setup =============================

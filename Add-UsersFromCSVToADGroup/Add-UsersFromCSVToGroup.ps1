@@ -18,8 +18,8 @@
 # ========================= Configuration =========================
 
 $GroupName = "Blind-UserLogin-Exception"
-$CsvPath = "C:\Users\opm.abdelkader\Desktop\Add-UsersFromCSVToGroup\users.csv"
-$Domain = "@qu.edu.sa"
+$CsvPath = "C:\Add-UsersFromCSVToGroup\users.csv"
+$Domain = "@abc.local"
 
 $SuccessCount = 0
 $FailureCount = 0
