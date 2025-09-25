@@ -25,7 +25,7 @@ The report summarizes **Healthy / Warning / Critical** based on binary checks an
 
 ## Screenshots
 
-![Screenshot](.\Media\Screenshot.png)
+![Screenshot](Screenshot.png)
 
 ---
 ## Requirements
