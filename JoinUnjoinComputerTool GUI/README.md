@@ -16,12 +16,12 @@ Supports joining/disjoining domains, OU selection, deleting AD objects, Entra ID
 
 With **JoinUnjoinComputerTool**, you can:
 
- *🔹 **Join** a computer to Active Directory (with OU selection).
- *🔹 **Disjoin** a computer from AD to a workgroup.
- *🔹 **Delete computer objects** from AD (with validation & warnings).
- *🔹 **Join/Leave Microsoft Entra ID (Azure AD)**.
- *🔹 **Enroll into Microsoft Intune** (personal device).
- *🔹 **Display device information**: Domain, IP, Entra ID, SCCM, Co-Management.
+🔹 Join a computer to Active Directory (with OU selection).
+🔹 Disjoin a computer from AD to a workgroup.
+🔹 Delete computer objects from AD (with validation & warnings).
+🔹 Join/Leave Microsoft Entra ID (Azure AD).
+🔹 Enroll into Microsoft Intune (personal device).
+🔹 Display device information: Domain, IP, Entra ID, SCCM, Co-Management.
 
 ---
 
