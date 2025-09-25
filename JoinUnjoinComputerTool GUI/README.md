@@ -6,9 +6,26 @@
 ![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
 ![Version](https://img.shields.io/badge/latest-v2.5-green.svg)
 
-A **PowerShell WPF GUI tool** for IT administrators to manage **computer objects** across **Active Directory (AD)** and **Microsoft Entra ID (Azure AD)**.
+A **PowerShell WPF GUI tool** built for **Helpdesk teams** to safely and efficiently manage **computer objects** across **Active Directory (AD)** and **Microsoft Entra ID (Azure AD)**.
 
-Supports joining/disjoining domains, OU selection, deleting AD objects, Entra ID join/leave, Intune enrollment, and showing real-time device posture (Domain, IP, SCCM, Co-Management).
+This tool simplifies complex PowerShell operations into an **easy-to-use interface**, making it perfect for front-line support staff.
+
+---
+
+## 🎯 Why This Tool?
+
+Helpdesk technicians often need to:
+
+* Join or disjoin computers from domains.
+* Verify AD/Entra ID status.
+* Delete or clean up stale computer accounts.
+* Check SCCM and Co-Management posture.
+
+Instead of typing long PowerShell commands, this tool provides:
+✅ A **friendly GUI**
+✅ **Color-coded statuses** (Green/Red/Orange)
+✅ **Confirmation prompts** for risky actions
+✅ **Built-in troubleshooting messages**
 
 ---
 
@@ -39,6 +56,7 @@ With **JoinUnjoinComputerTool**, you can:
 
 ## ✨ Features
 
+* ✅ Helpdesk-Friendly GUI
 * ✅ Join & Disjoin Active Directory (with OU picker)
 * ✅ Delete AD computer objects (with safeguards)
 * ✅ Entra ID Join/Leave via `dsregcmd`
@@ -47,6 +65,7 @@ With **JoinUnjoinComputerTool**, you can:
 * ✅ WPF GUI with color-coded status (🟢 Active / 🔴 Inactive / 🟠 Needs Attention)
 * ✅ Confirmation dialogs for critical actions
 * ✅ Logging & error handling
+* ✅ Message Center log (in v2) for real-time feedback
 
 ---
 
@@ -148,12 +167,12 @@ These run without execution policy changes and are easier for helpdesk teams.
 
 ---
 
-## 📌 Notes
+## 📌 Notes for Helpdesk
 
-* **v2** is the recommended build for production use.
-* **v1** is preserved for transparency and fallback.
-* Always **test in staging OUs** before production.
-* Use accounts with **delegated rights** for join/disjoin/delete.
+* v2 is designed for **daily support tasks** → always use it unless debugging.
+* Use accounts with **least privilege** (OU join rights only).
+* Always confirm before deleting objects from AD.
+* Train helpdesk staff using **screenshots + troubleshooting tips** above.
 
 ---
 
