@@ -1,130 +1,213 @@
 
-# Active Directory Health Check
+# Get-ADHealth.ps1 — Domain Controller Health Check
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
-![Version](https://img.shields.io/badge/version-2.10-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Windows](https://img.shields.io/badge/Windows-Server%202012R2%2B-blue.svg)
+![Output](https://img.shields.io/badge/Report-HTML%20%2B%20Email-green.svg)
 
 ## Overview
+`Get-ADHealth.ps1` runs a comprehensive health check against all Domain Controllers (DCs) in one or more domains—or the entire forest—and generates a **modern, card-style HTML report**. Optionally, it **emails** the same HTML inline to your operations team.
 
-`Get-ADHealth.ps1` is a comprehensive PowerShell script for auditing and validating the health of all Domain Controllers in a specific Active Directory domain or the entire forest.
+**Per-DC collectors**
+- DNS resolution (`Resolve-DnsName`)
+- ICMP reachability (`Test-Connection`)
+- Uptime & last reboot (`Win32_OperatingSystem`)
+- Time sync drift (`w32tm /stripchart`)
+- OS drive free space (%, GB) (`Win32_LogicalDisk`)
+- Service status (DNS, NTDS, NetLogon)
+- `DCDIAG` suite (Connectivity, Replication, SysVol, FSMO, …)
 
-The script runs a series of diagnostics such as service availability, time synchronization, disk space, replication issues, and DCDIAG test results. The output is a structured, color-coded **HTML report** that provides at-a-glance status for each DC, and optionally sends it via **email with an HTML body and attachment**.
-
----
-
-## Features
-
-- 🔍 Health checks for all DCs in a domain or forest
-- ✅ Tests include:
-  - DNS resolution (Resolve-DnsName)
-  - Ping status
-  - Server uptime
-  - Time offset check via w32tm
-  - Disk space (GB and percentage)
-  - Key service status (DNS, NTDS, NetLogon)
-  - Full DCDIAG test suite
-- 📄 HTML report with color-coded status
-- 📧 SMTP email support with the report as both **attachment** and **HTML body**
-- 📁 Saves reports to `C:\Reports` automatically
-- 🧠 Modular functions and clean output formatting
-- 🛠 Ready for scheduled tasks or automation tools
+The report summarizes **Healthy / Warning / Critical** based on binary checks and numeric thresholds.
 
 ---
 
-## Prerequisites
+## Requirements
 
-- ✅ PowerShell 5.1+
-- ✅ RSAT installed (Active Directory module, DCDIAG)
-- ✅ Domain Admin permissions (or delegated rights)
-- ✅ Network access to all DCs
-- ✅ SMTP access if using `-SendEmail`
+- **Windows PowerShell 5.1**
+- **RSAT: Active Directory** PowerShell module  
+  Microsoft Docs: <https://learn.microsoft.com/powershell/module/activedirectory/>
+- `dcdiag.exe` available (install RSAT or run on a DC)  
+  Docs: <https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag>
+- Remote WMI/CIM access to DCs for uptime/disk metrics
+- Optional email:
+  - SMTP server (e.g., **Exchange Online** `smtp.office365.com:587`)  
+    Docs: <https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission>
 
 ---
 
-## How to Use
-
-### Basic Syntax
+## Installation
 
 ```powershell
-.\Get-ADHealth.ps1 [-DomainName <domain>] [-ReportFile] [-SendEmail]
+# Download/save the script
+# e.g., C:\Ops\AD\Get-ADHealth.ps1
+
+# Ensure RSAT:AD is installed (Windows 10/11 example)
+Get-WindowsCapability -Online | Where-Object Name -like 'Rsat.ActiveDirectory*'
+Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0
 ````
-
-### Examples
-
-```powershell
-# Run forest-wide health check and save report
-.\Get-ADHealth.ps1 -ReportFile
-
-# Check a specific domain
-.\Get-ADHealth.ps1 -DomainName contoso.com -ReportFile
-
-# Check domain and send report via email
-.\Get-ADHealth.ps1 -DomainName contoso.com -SendEmail
-```
 
 ---
 
 ## Parameters
 
-| Parameter     | Description                                                               |
-| ------------- | ------------------------------------------------------------------------- |
-| `-DomainName` | (Optional) Target a specific domain. If omitted, all domains are checked. |
-| `-ReportFile` | Save the HTML report locally to `C:\Reports`.                             |
-| `-SendEmail`  | Send the report via email (requires SMTP configuration).                  |
+| Name         | Type           | Default                          | Description                                                                             |
+| ------------ | -------------- | -------------------------------- | --------------------------------------------------------------------------------------- |
+| `DomainName` | `string[]`     | *(all forest domains)*           | One or more domain DNS names to scan. Omit to scan entire forest.                       |
+| `ReportPath` | `string`       | `C:\Reports`                     | Folder to save the HTML report.                                                         |
+| `SendEmail`  | `switch`       | `False`                          | If present, sends the report inline via SMTP.                                           |
+| `Subject`    | `string`       | `Domain Controller Health Check` | Email subject.                                                                          |
+| `UserFrom`   | `string`       | `smtp-reports@yourdomain.com`    | SMTP From address.                                                                      |
+| `UserTo`     | `string[]`     | `it-admins@yourdomain.com`       | One or more recipients.                                                                 |
+| `SmtpServer` | `string`       | `smtp.office365.com`             | SMTP server hostname.                                                                   |
+| `Port`       | `int`          | `587`                            | SMTP port.                                                                              |
+| `Credential` | `PSCredential` | —                                | SMTP credential. If omitted but `Password` provided, script builds one with `UserFrom`. |
+| `Password`   | `SecureString` | —                                | SecureString password for SMTP (used if `Credential` not supplied).                     |
 
 ---
 
-## SMTP Configuration
+## Health Thresholds (tunable in script)
 
-Update this block in the script:
+* `UptimeWarnHours = 24`
+* `FreePctFail = 5`, `FreePctWarn = 30`
+* `FreeGBFail = 5`, `FreeGBWarn = 10`
+* `TimeWarnSeconds = 0.5`, `TimeFailSeconds = 1.0`
+
+---
+
+## Usage
+
+### Scan the entire forest and save HTML
 
 ```powershell
-$smtpsettings = @{
-    To         = 'admin@domain.com'
-    From       = 'adhealth@yourdomain.com'
-    Subject    = "Domain Controller Health Report - $(Get-Date -Format 'yyyy-MM-dd')"
-    SmtpServer = "mail.domain.com"
-    Port       = 25
-    #Credential = (Get-Credential)
-    #UseSsl     = $true
-}
+.\Get-ADHealth.ps1 -ReportPath 'C:\Reports'
 ```
 
-> 💡 You can enable authentication and SSL by uncommenting `Credential` and `UseSsl`.
+### Scope to specific domains
+
+```powershell
+.\Get-ADHealth.ps1 -DomainName 'contoso.com','emea.contoso.com' -ReportPath 'C:\Reports'
+```
+
+### Email the report (inline)
+
+```powershell
+$cred = Get-Credential  # SMTP credential (e.g., EXO mailbox)
+.\Get-ADHealth.ps1 `
+  -SendEmail `
+  -Subject 'AD DC Health Check' `
+  -UserFrom 'op-smtp@yourtenant.onmicrosoft.com' `
+  -UserTo 'it-admins@yourdomain.com','noc@yourdomain.com' `
+  -SmtpServer 'smtp.office365.com' -Port 587 `
+  -Credential $cred
+```
+
+> **Note:** The email body uses the same HTML layout as the saved file for consistency across mediums.
 
 ---
 
 ## Output
 
-* 📁 Saved to: `C:\Reports\ADHealthReport_<timestamp>.html`
-* 📧 Sent via SMTP with:
-
-  * Inline HTML body
-  * Attached report file
-
-Report statuses are styled:
-
-| Status    | Meaning       |
-| --------- | ------------- |
-| ✅ Green   | Passed check  |
-| ⚠️ Yellow | Warning state |
-| ❌ Red     | Failed check  |
+* **Saved HTML**: `ADHealthReport_yyyyMMdd_HHmmss.html` in `ReportPath`
+* **Email (optional)**: Inline HTML body with the same card-style layout
 
 ---
 
-## Screenshot
+## Scheduling (Task Scheduler)
 
-> A screenshot preview of the HTML table can be added here in your GitHub repo if desired.
+1. Place the script, e.g., `C:\Ops\AD\Get-ADHealth.ps1`.
+2. Create a task running as a service account with AD/WMI permissions.
+3. **Program/script:** `powershell.exe`
+   **Arguments:**
+
+   ```text
+   -NoProfile -ExecutionPolicy Bypass -File "C:\Ops\AD\Get-ADHealth.ps1" -ReportPath "C:\Reports" -SendEmail -Subject "AD DC Health" -UserFrom "op-smtp@yourtenant.onmicrosoft.com" -UserTo "it-admins@yourdomain.com" -SmtpServer "smtp.office365.com" -Port 587
+   ```
+4. Enable **Run whether user is logged on or not**.
+5. (If needed) **Run with highest privileges**.
+
+---
+
+## How It Works
+
+1. **Discovery**
+
+   * Enumerates domains (`Get-ADForest`) and DCs (`Get-ADDomainController -Filter *`).
+
+2. **Probes per DC**
+
+   * DNS, ICMP, uptime, time drift, disk %, disk GB, service states (DNS/NTDS/NetLogon), and `DCDIAG` tests.
+
+3. **State Calculation**
+
+   * Any critical binary failure (DNS/Ping/Services/critical `DCDIAG`) ⇒ **Critical**.
+   * Threshold breaches escalate to **Warning** or **Critical**.
+
+4. **Rendering**
+
+   * Builds an **email-safe HTML** (inline CSS) with **cards**, **badges**, and **meters**.
+
+5. **Delivery**
+
+   * Saves the HTML and, if requested, sends via SMTP.
+
+---
+
+## Security Notes
+
+* **Avoid hard-coding credentials.** Prefer `Get-Credential`, Windows Credential Manager, or **SecretManagement**:
+  [https://learn.microsoft.com/powershell/utility-modules/secretmanagement/overview](https://learn.microsoft.com/powershell/utility-modules/secretmanagement/overview)
+* `Send-MailMessage` is **deprecated**. It remains functional in many environments, but plan to migrate to:
+
+  * Microsoft Graph **SendMail**: [https://learn.microsoft.com/graph/api/user-sendmail](https://learn.microsoft.com/graph/api/user-sendmail)
+  * or **MailKit**: [https://github.com/jstedfast/MailKit](https://github.com/jstedfast/MailKit)
+
+---
+
+## Troubleshooting
+
+* **`ActiveDirectory` module missing**
+  Install RSAT (Windows 10/11 Optional Features or DISM/PowerShell).
+  Docs: [https://learn.microsoft.com/powershell/module/activedirectory/](https://learn.microsoft.com/powershell/module/activedirectory/)
+
+* **`dcdiag.exe` not found**
+  Install RSAT or run the script on a DC.
+  Docs: [https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag](https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag)
+
+* **CIM/WMI errors**
+  Ensure firewall allows WMI/RPC to DCs and the run-as account has rights.
+
+* **Email failures (EXO)**
+  Verify mailbox, SMTP AUTH, and TLS settings.
+  Docs: [https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission](https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission)
+
+---
+
+## References (Microsoft/GitHub)
+
+* Resolve-DnsName: [https://learn.microsoft.com/powershell/module/dnsclient/resolve-dnsname](https://learn.microsoft.com/powershell/module/dnsclient/resolve-dnsname)
+* DCDIAG: [https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag](https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag)
+* Windows Time Service: [https://learn.microsoft.com/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings](https://learn.microsoft.com/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings)
+* Win32_OperatingSystem: [https://learn.microsoft.com/windows/win32/cimwin32prov/win32-operatingsystem](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-operatingsystem)
+* Win32_LogicalDisk: [https://learn.microsoft.com/windows/win32/cimwin32prov/win32-logicaldisk](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-logicaldisk)
+* AD PowerShell: [https://learn.microsoft.com/powershell/module/activedirectory/](https://learn.microsoft.com/powershell/module/activedirectory/)
+* Exchange Online SMTP AUTH: [https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission](https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission)
+* MailKit (alt. SMTP): [https://github.com/jstedfast/MailKit](https://github.com/jstedfast/MailKit)
+
+---
+
+## Changelog
+
+* **v1.0** — Initial release: per-DC probes, DCDIAG parsing, card-style HTML, email delivery.
 
 ---
 
 ## License
 
-Licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This script is licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
 ---
 
 ## Disclaimer
 
-> ⚠️ Use this script at your own risk. Test thoroughly in a lab environment before deploying in production. The author assumes no responsibility for system changes or failures.
+> ⚠️ Use responsibly in production. Always test scripts in a staging environment first.
