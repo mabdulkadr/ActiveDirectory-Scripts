@@ -88,6 +88,8 @@ Licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-> ⚠️ Always test scripts in a lab environment before production use. The author is not responsible for any misuse or data loss.
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.

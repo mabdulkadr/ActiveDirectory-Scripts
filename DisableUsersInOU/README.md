@@ -97,12 +97,8 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ---
 
-## Author
+## ⚠️ Disclaimer
 
-**Mohammad Abdelkader**
-🌐 [momar.tech](https://momar.tech)
-💻 GitHub: [@mabdulkadr](https://github.com/mabdulkadr)
-
----
-
-> ⚠️ **Disclaimer**: Use this script in a test environment first. Disabling user accounts is an irreversible action unless manually re-enabled.
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.

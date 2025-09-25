@@ -126,4 +126,8 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ---
 
-**Disclaimer**: This script is provided as-is. Test in a staging environment before deploying in production. The author is not responsible for any unintended consequences.
+## ⚠️ Disclaimer
+
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.

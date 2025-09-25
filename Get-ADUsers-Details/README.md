@@ -96,6 +96,8 @@ This script is licensed under the [MIT License](https://opensource.org/licenses/
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-> ⚠️ Use responsibly in production. Always test scripts in a staging environment first.
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.

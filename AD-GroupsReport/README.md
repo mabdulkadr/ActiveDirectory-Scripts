@@ -102,6 +102,8 @@ Licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-> ⚠️ This script is provided as-is. Test it in a development environment before using in production. The author is not responsible for unintended consequences.
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.
