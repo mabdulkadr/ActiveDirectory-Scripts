@@ -16,12 +16,12 @@ Supports joining/disjoining domains, OU selection, deleting AD objects, Entra ID
 
 With **JoinUnjoinComputerTool**, you can:
 
-* 🔹 **Join** a computer to Active Directory (with OU selection).
-* 🔹 **Disjoin** a computer from AD to a workgroup.
-* 🔹 **Delete computer objects** from AD (with validation & warnings).
-* 🔹 **Join/Leave Microsoft Entra ID (Azure AD)**.
-* 🔹 **Enroll into Microsoft Intune** (personal device).
-* 🔹 **Display device information**: Domain, IP, Entra ID, SCCM, Co-Management.
+ 🔹 **Join** a computer to Active Directory (with OU selection).
+ 🔹 **Disjoin** a computer from AD to a workgroup.
+ 🔹 **Delete computer objects** from AD (with validation & warnings).
+ 🔹 **Join/Leave Microsoft Entra ID (Azure AD)**.
+ 🔹 **Enroll into Microsoft Intune** (personal device).
+ 🔹 **Display device information**: Domain, IP, Entra ID, SCCM, Co-Management.
 
 ---
 
@@ -29,7 +29,7 @@ With **JoinUnjoinComputerTool**, you can:
 
 ### Main Interface
 
-![Screenshot](./Screenshot.png)
+![Screenshot](./Screenshot1.png)
 
 ### OU Picker & Status Display
 
@@ -105,8 +105,7 @@ This repository contains **two versions** of the tool:
 
 ```powershell
 # Clone repo
-git clone https://github.com/mabdulkadr/Scripts.git
-cd Scripts/JoinUnjoinComputerTool
+Download script
 
 # Allow script execution (session only)
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
@@ -169,7 +168,3 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 This script is provided **as-is** without warranty.
 The author is **not responsible** for unintended modifications or data loss.
 Always test thoroughly before deploying in production.
-
----
-
-👉 Do you want me to also generate a **CHANGELOG.md** file so you can clearly track what was added in v1 → v2 (and future v3), alongside this README?
