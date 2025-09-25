@@ -176,6 +176,16 @@ These run without execution policy changes and are easier for helpdesk teams.
 
 ---
 
+## 📚 References
+
+* [Add-Computer (Microsoft Docs)](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/add-computer)
+* [Remove-Computer (Microsoft Docs)](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/remove-computer)
+* [PrincipalContext.ValidateCredentials](https://learn.microsoft.com/dotnet/api/system.directoryservices.accountmanagement.principalcontext.validatecredentials)
+* [dsregcmd /status (Entra ID join state)](https://learn.microsoft.com/azure/active-directory/devices/troubleshoot-device-dsregcmd)
+* [Co-Management Overview (Intune + SCCM)](https://learn.microsoft.com/mem/configmgr/comanage/overview)
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
