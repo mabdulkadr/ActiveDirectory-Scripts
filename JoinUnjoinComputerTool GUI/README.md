@@ -27,11 +27,11 @@ With **JoinUnjoinComputerTool**, you can:
 
 ## 🖼️ Screenshots
 
-### Main Interface
+### Main Interface V1
 
-![Screenshot](./Screenshot1.png)
+![Screenshot1](./Screenshot1.png)
 
-### OU Picker & Status Display
+### Main Interface V2
 
 ![Screenshot2](./Screenshot2.png)
 
