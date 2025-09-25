@@ -105,12 +105,8 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ---
 
-## Author
+## ⚠️ Disclaimer
 
-**Mohammad Abdelkader**
-🌐 [momar.tech](https://momar.tech)
-💻 GitHub: [@mabdulkadr](https://github.com/mabdulkadr)
-
----
-
-> ⚠️ **Disclaimer**: Use at your own risk. Always test in a lab environment before running in production.
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.

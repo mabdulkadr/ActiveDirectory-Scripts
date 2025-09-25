@@ -76,5 +76,8 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ---
 
-**Disclaimer**: These scripts are provided as-is. Test them in a staging environment before use in production. The author is not responsible for any unintended outcomes resulting from their use.
+## ⚠️ Disclaimer
 
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.
