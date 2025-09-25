@@ -1,141 +1,175 @@
-# JoinUnjoinComputerTool
+
+
+# 🖥️ Join Unjoin Computer Tool
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
-![Version](https://img.shields.io/badge/version-2.0-green.svg)
+![Version](https://img.shields.io/badge/latest-v2.5-green.svg)
 
-## Overview
+A **PowerShell WPF GUI tool** for IT administrators to manage **computer objects** across **Active Directory (AD)** and **Microsoft Entra ID (Azure AD)**.
 
-**JoinUnjoinComputerTool** is a PowerShell-based GUI tool designed to help IT administrators efficiently manage computer objects in Active Directory and Microsoft Entra ID (formerly Azure AD). This tool provides an intuitive interface for:
-
-- Joining a computer to an **Active Directory (AD) domain** with Organizational Unit (OU) selection.
-- Disjoining a computer from an **Active Directory (AD) domain**.
-- Deleting computer objects from **Active Directory**.
-- Joining or removing a computer from **Microsoft Entra ID** (Azure AD).
-- Enrolling a computer into **Microsoft Intune** as a personal device.
-- Displaying key device information such as domain status, IP address, Entra ID status, SCCM status, and Co-Management status.
+Supports joining/disjoining domains, OU selection, deleting AD objects, Entra ID join/leave, Intune enrollment, and showing real-time device posture (Domain, IP, SCCM, Co-Management).
 
 ---
 
-## Screenshots
+## 🚀 Overview
 
-![Screenshot](Screenshot.png)
+With **JoinUnjoinComputerTool**, you can:
 
----
-
-## Features
-
-### ✅ Active Directory Management
-- **Join to AD** with OU selection.
-- **Disjoin from AD** and move to a workgroup.
-- **Delete AD objects** with validation to prevent deleting active domain-joined machines.
-
-### ✅ Microsoft Entra ID & Intune Management
-- **Join to Entra ID** (Hybrid and Azure AD Join detection).
-- **Leave Entra ID** and revert to a local machine.
-- **Enroll into Intune** as a personal device.
-
-### ✅ Device Information Display
-- **Computer Name**
-- **IP Address**
-- **Domain Status** (Workgroup or Domain-Joined)
-- **Entra ID Status** (Azure AD Joined, Hybrid, or Not Joined)
-- **SCCM Client Status** (Installed & Running, Installed but Stopped, or Not Installed)
-- **Co-Management Status** (Enabled, Disabled, or Not Detected)
-
-### ✅ Intuitive UI
-- **Modern PowerShell WPF GUI**
-- **Dynamic Status Updates** with color-coded fields:
-  - 🟢 Green = Active/Enabled
-  - 🔴 Red = Inactive/Disabled
-  - 🟠 Orange = Requires Attention
-- **Confirmation Dialogs** for critical operations.
-- **Logging & Error Handling** for troubleshooting.
-
+* 🔹 **Join** a computer to Active Directory (with OU selection).
+* 🔹 **Disjoin** a computer from AD to a workgroup.
+* 🔹 **Delete computer objects** from AD (with validation & warnings).
+* 🔹 **Join/Leave Microsoft Entra ID (Azure AD)**.
+* 🔹 **Enroll into Microsoft Intune** (personal device).
+* 🔹 **Display device information**: Domain, IP, Entra ID, SCCM, Co-Management.
 
 ---
 
-## Installation & Usage
+## 🖼️ Screenshots
 
-### Prerequisites
-- Windows 10/11 or Windows Server 2016+
-- PowerShell 5.1 or later
-- **Administrator Privileges** required to modify system settings.
+### Main Interface
 
-### Running the Script
-1. Download the script:  
-   ```powershell
-   git clone https://github.com/mabdulkadr/Scripts.git
-   cd Scripts/JoinUnjoinComputerTool
-   ```
-2. Run PowerShell as **Administrator**.
-3. Execute the script:
-   ```powershell
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
-   .\JoinUnjoinComputerTool.ps1
-   ```
-4. The GUI will launch, displaying device details and available actions.
+![Screenshot](./Screenshot.png)
+
+### OU Picker & Status Display
+
+![Screenshot2](./Screenshot2.png)
 
 ---
 
-## How It Works
+## ✨ Features
 
-### 🔹 PC Information Retrieval
-The script gathers system details using:
-- `Win32_ComputerSystem` for domain/workgroup status.
-- `Get-NetIPAddress` for IP address resolution.
-- `dsregcmd /status` for Entra ID detection.
-- `Get-Service ccmexec` for SCCM client status.
-- **WMI & Registry** for Co-Management detection:
-  - `HKLM:\SOFTWARE\Microsoft\CCM\CoManagementFlags`
-  - `HKLM:\Software\Policies\Microsoft\Windows\CurrentVersion\MDM`
-
-### 🔹 Joining a Domain
-- Prompts for **Active Directory credentials**.
-- Uses `Add-Computer` to join the specified domain & OU.
-- Validates if the machine is already in the domain.
-- Restarts the computer upon successful operation.
-
-### 🔹 Disjoining from a Domain
-- Uses `Remove-Computer` to move to a **workgroup**.
-- Ensures the machine is **not actively domain-joined** before deletion.
-
-### 🔹 Microsoft Entra ID (Azure AD)
-- Uses `dsregcmd /join` and `dsregcmd /leave` to **join or remove** Entra ID.
-- Detects **Hybrid Join** vs **Azure AD Join**.
-
-### 🔹 SCCM & Co-Management Detection
-- SCCM **Client Service Check** (`ccmexec`).
-- Co-Management detection via **WMI and Registry**.
+* ✅ Join & Disjoin Active Directory (with OU picker)
+* ✅ Delete AD computer objects (with safeguards)
+* ✅ Entra ID Join/Leave via `dsregcmd`
+* ✅ Intune enrollment detection
+* ✅ Device info snapshot (Domain, IP, SCCM, Co-Management)
+* ✅ WPF GUI with color-coded status (🟢 Active / 🔴 Inactive / 🟠 Needs Attention)
+* ✅ Confirmation dialogs for critical actions
+* ✅ Logging & error handling
 
 ---
 
-## Troubleshooting
+## 📦 Versions
 
-| Issue | Possible Cause | Solution |
-|--------|---------------|----------|
-| ❌ Script fails to launch | Execution policy restrictions | Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force` |
-| ❌ "Server is not operational" | Incorrect Domain Controller / OU settings | Verify AD settings and credentials |
-| ❌ "Failed to join Entra ID" | Network issues / Incorrect permissions | Run `dsregcmd /status` manually |
-| ❌ "Co-Management Not Detected" | SCCM is not installed or configured | Check `CoManagementFlags` registry key |
+This repository contains **two versions** of the tool:
+
+### 🔹 v1 – Classic Build
+
+* Basic join/disjoin functionality.
+* AD object deletion with validation.
+* Entra ID (Azure AD) join/leave support.
+* Intune enrollment as personal device.
+* Device info: Domain, IP, Entra ID, SCCM, Co-Management.
+* Modern WPF GUI with dynamic color status.
+
+### 🔹 v2 – Enhanced Build (Latest)
+
+* All **v1 features** plus:
+
+  * **Credential validation pill** (Connected / Not Connected / Error).
+  * **Domain Controller reachability check** (ports 389/88).
+  * **Message Center log** with color-coded entries (INFO, SUCCESS, WARNING, ERROR).
+  * **Safer AD deletion** with **double confirmation** and warning if the account is enabled.
+  * **Restart prompts** after join/disjoin.
+  * **Live Refresh Info** (DC status, Entra ID join, SCCM client, Co-Management).
 
 ---
 
-## Notes
+## ⚖️ Version Comparison
 
-- This script is designed for **IT administrators** and **system engineers** managing corporate environments.
-- **Test in a lab** before deploying to production.
-- Ensure that your **domain credentials** have appropriate **permissions** for joining/disjoining devices.
+| Feature                                 | v1        | v2                                           |
+| --------------------------------------- | --------- | -------------------------------------------- |
+| Join/Disjoin AD                         | ✅         | ✅                                            |
+| OU Picker                               | ✅         | ✅                                            |
+| Delete AD Computer                      | ✅ (basic) | ✅ (with enabled check + double confirmation) |
+| Entra ID Join/Leave                     | ✅         | ✅                                            |
+| Intune Enrollment                       | ✅         | ✅                                            |
+| Device Info (Domain, IP, SCCM, Co-Mgmt) | ✅         | ✅ (with live refresh)                        |
+| Credential Validation Pill              | ❌         | ✅                                            |
+| DC Reachability Test                    | ❌         | ✅                                            |
+| Message Center Log                      | ❌         | ✅                                            |
+| Restart Prompt                          | ❌         | ✅                                            |
 
 ---
 
-## License
+## ⚙️ Installation & Usage
 
-This project is licensed under the **MIT License**. See the [LICENSE](https://opensource.org/licenses/MIT) file for details.
+### 🔹 Prerequisites
+
+* Windows 10/11 or Windows Server 2016+
+* PowerShell **5.1+**
+* Must be run as **Administrator**
+
+### 🔹 Run the Tool
+
+```powershell
+# Clone repo
+git clone https://github.com/mabdulkadr/Scripts.git
+cd Scripts/JoinUnjoinComputerTool
+
+# Allow script execution (session only)
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
+
+# Launch tool (v1)
+.\JoinUnjoinComputerTool - v1.ps1
+
+# Or launch tool (v2 - recommended)
+.\JoinUnjoinComputerTool - v2.ps1
+```
+
+You can also use the compiled executables:
+
+* `JoinUnjoinComputerTool - v1.exe`
+* `JoinUnjoinComputerTool - v2.exe`
+
+These run without execution policy changes and are easier for helpdesk teams.
 
 ---
 
-## Disclaimer
-This script is provided **as-is**. Use it with caution, and **test in a non-production environment before deployment**. The author is **not responsible** for unintended modifications or data loss.
+## 🧰 How It Works
 
+* **Domain Join** → `Add-Computer -DomainName ... -OUPath ...`
+* **Domain Disjoin** → `Remove-Computer -WorkgroupName WORKGROUP`
+* **AD Delete** → LDAP bind, validates if enabled before deletion
+* **Entra ID** → `dsregcmd /join`, `dsregcmd /leave`
+* **Device Info** → `Get-CimInstance Win32_ComputerSystem`, `Get-NetIPAddress`, `dsregcmd /status`, `Get-Service ccmexec`
+* **Co-Management** → Registry & WMI flags
 
+---
+
+## 🛠️ Troubleshooting
+
+| Issue                         | Cause                         | Fix                                                                           |
+| ----------------------------- | ----------------------------- | ----------------------------------------------------------------------------- |
+| ❌ Script won’t launch         | Execution policy restrictions | Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force` |
+| ❌ "Server is not operational" | Wrong DC/OU DN                | Verify AD settings and credentials                                            |
+| ❌ Entra ID join fails         | Network/permissions           | Run `dsregcmd /status` manually                                               |
+| ❌ Co-Management not detected  | SCCM not installed            | Check `CoManagementFlags` registry key                                        |
+
+---
+
+## 📌 Notes
+
+* **v2** is the recommended build for production use.
+* **v1** is preserved for transparency and fallback.
+* Always **test in staging OUs** before production.
+* Use accounts with **delegated rights** for join/disjoin/delete.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+---
+
+## ⚠️ Disclaimer
+
+This script is provided **as-is** without warranty.
+The author is **not responsible** for unintended modifications or data loss.
+Always test thoroughly before deploying in production.
+
+---
+
+👉 Do you want me to also generate a **CHANGELOG.md** file so you can clearly track what was added in v1 → v2 (and future v3), alongside this README?
