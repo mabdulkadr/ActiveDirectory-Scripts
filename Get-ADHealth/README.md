@@ -22,6 +22,12 @@ The report summarizes **Healthy / Warning / Critical** based on binary checks an
 
 ---
 
+
+## Screenshots
+
+![Screenshot](.\Media\Screenshot.png)
+
+---
 ## Requirements
 
 - **Windows PowerShell 5.1**
