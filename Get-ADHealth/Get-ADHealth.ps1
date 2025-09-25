@@ -68,7 +68,7 @@ param(
     [string]$Subject    = 'Domain Controller Health Check',
     [string]$UserFrom   = 'smtp-reports@yourdomain.com',
     [string[]]$UserTo   = @("it-admins@yourdomain.com"),
-    [string]$SmtpServer = 'smtp.office365.com', # Your SMTP server (EOP/Exchange Online)
+    [string]$SmtpServer = 'smtp.office365.com',
     [int]$Port          = 587,
 
 	[securestring]$Password,
@@ -411,7 +411,6 @@ function Get-DCHealthState {
     if ($warnTriggered) { return 'Warning' }
     return 'Healthy'
 }
-
 
 function Build-EmailSafeHtmlReport {
     param(
