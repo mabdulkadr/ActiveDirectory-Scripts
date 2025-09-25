@@ -23,7 +23,7 @@ The report summarizes **Healthy / Warning / Critical** based on binary checks an
 ---
 
 
-## Screenshots
+## Email Screenshot
 
 ![Screenshot](Screenshot.png)
 
