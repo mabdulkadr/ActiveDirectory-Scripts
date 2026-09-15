@@ -86,6 +86,18 @@ This script takes **no parameters**. Replace the hardcoded configuration in the 
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the group report.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADGroup` | Enumerates all groups in the domain with metadata attributes | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroup) |
+| `Get-ADObject` | Resolves group member objects to compute member-type counts and nesting | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adobject) |
+| `Export-Csv` | Writes the timestamped CSV report | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/export-csv) |
+
+---
+
 # 🛡 Operational Notes
 * Output lands in `C:\ADGroupsReport\ADGroupsReport_<timestamp>.csv` with a matching `.log` file.
 * The script is **read-only** — it queries groups and members but never modifies objects.

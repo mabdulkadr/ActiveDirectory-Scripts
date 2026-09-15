@@ -40,7 +40,7 @@ Run it first in log-only mode to preview changes, then enable modifications and 
 # 📂 Project Structure
 
 ```text
-Shadow Group
+Shadow-Group
 │
 ├── ShadowGroup.ps1
 └── README.md
@@ -98,6 +98,19 @@ All settings live in the **PARAMETERS** section at the top of the script — no 
 * **Active Directory Module** for Windows PowerShell
 * **ADWS** (Active Directory Web Services) on the target DC
 * Rights to manage group membership in AD (run elevated)
+
+---
+
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the shadow-group sync.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADUser` | Enumerates users in the monitored OUs | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser) |
+| `Get-ADGroupMember` | Reads the current shadow group membership for comparison | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroupmember) |
+| `Add-ADGroupMember` | Adds users who entered the monitored OUs | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/add-adgroupmember) |
+| `Remove-ADGroupMember` | Removes users who no longer belong to the OUs | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/remove-adgroupmember) |
 
 ---
 

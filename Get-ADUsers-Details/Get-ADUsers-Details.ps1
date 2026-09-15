@@ -1,4 +1,4 @@
-<#!
+<#
 .SYNOPSIS
     Get full AD user details from a specific OU including group memberships, password settings, and activity data.
 

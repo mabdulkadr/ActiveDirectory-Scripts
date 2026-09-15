@@ -83,6 +83,18 @@ This script takes **no parameters** — set the `$OU` variable inside the script
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the user inventory.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADUser` | Reads account attributes and logon timestamps per OU user | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser) |
+| `Get-ADGroup` | Resolves group membership details for each user | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroup) |
+| `Export-Csv` | Writes the desktop CSV report | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/export-csv) |
+
+---
+
 # 🛡 Operational Notes
 * Output CSV: `C:\Users\<YourName>\Desktop\OperationDept_UserDetails.csv`.
 * The script is **read-only** — it collects attributes and exports; no accounts are modified.

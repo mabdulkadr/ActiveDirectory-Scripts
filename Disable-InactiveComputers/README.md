@@ -37,9 +37,9 @@ For Administrators who need to clean up old computer objects in Active Directory
 # 📂 Project Structure
 
 ```text
-Disable Inactive Computers
+Disable-InactiveComputers
 │
-├── DisableInactiveComputers.ps1.ps1
+├── DisableInactiveComputers.ps1
 └── README.md
 ```
 
@@ -49,12 +49,12 @@ Disable Inactive Computers
 
 ### Basic Usage
 ```powershell
-.\DisableInactiveComputers.ps1.ps1
+.\DisableInactiveComputers.ps1
 ```
 
 ### With Parameters
 ```powershell
-.\DisableInactiveComputers.ps1.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=contoso,DC=local"
+.\DisableInactiveComputers.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=contoso,DC=local"
 ```
 
 ---
@@ -82,12 +82,23 @@ Disable Inactive Computers
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the cleanup workflow.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADComputer` | Discovers computer accounts in the target OU with `lastLogon` | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer) |
+| `Disable-ADAccount` | Disables computer accounts flagged as inactive | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/disable-adaccount) |
+| `Remove-ADComputer` | Deletes computer accounts in the final cleanup phase | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/remove-adcomputer) |
+
+---
+
 # 🛡 Operational Notes
 * The HTML report is saved to `C:\Computers_Report_yyyy-MM-dd_HH-mm-ss.html` with tables for inactive, disabled, and deleted computers.
 * Run against a **test/staging OU** before using in production.
 * Schedule the script regularly to keep stale computer accounts in check.
 * Back up Active Directory before running the delete phase — removal is irreversible.
-* The script file shipped with a doubled extension (`DisableInactiveComputers.ps1.ps1`); calls must reference the full file name.
 
 ---
 

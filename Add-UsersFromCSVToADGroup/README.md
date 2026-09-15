@@ -39,7 +39,8 @@ For Administrators who need to onboard batch users into a group without duplicat
 ```text
 Add-UsersFromCSVToADGroup
 │
-├── Add-UsersFromCSVToGroup.ps1
+├── Add-UsersFromCSVToADGroup.ps1
+├── users.csv
 └── README.md
 ```
 
@@ -49,7 +50,7 @@ Add-UsersFromCSVToADGroup
 
 ### Basic Usage
 ```powershell
-.\Add-UsersFromCSVToGroup.ps1
+.\Add-UsersFromCSVToADGroup.ps1
 ```
 
 ### CSV Format
@@ -85,6 +86,19 @@ This script takes **no parameters**. Edit the configuration variables at the top
 * **RSAT-AD-PowerShell** module
 * **Administrator** privileges
 * Write access to the target AD group
+
+---
+
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the bulk-add workflow.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Import-Csv` | Reads the `UserID` column from the input CSV | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/import-csv) |
+| `Get-ADUser` | Resolves each user ID and verifies the account exists | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser) |
+| `Get-ADGroupMember` | Reads existing membership to avoid duplicates | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroupmember) |
+| `Add-ADGroupMember` | Adds only the users not already in the group | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/add-adgroupmember) |
 
 ---
 

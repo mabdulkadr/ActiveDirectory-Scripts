@@ -92,6 +92,18 @@ This script takes **no parameters** — all report selection is driven through t
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive each report type.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADComputer` | Enumerates computer objects for the computers, workstations, servers, and OS-based reports | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer) |
+| `Get-ADDomainController` | Discovers Domain Controllers for the DC report | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-addomaincontroller) |
+| `ConvertTo-Html` | Renders each report into a styled, timestamped HTML file | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertto-html) |
+
+---
+
 # 🛡 Operational Notes
 * All reports are saved to `C:\ADReports` and are timestamped, so multiple runs are preserved.
 * The script is **read-only** — it never modifies Active Directory objects.

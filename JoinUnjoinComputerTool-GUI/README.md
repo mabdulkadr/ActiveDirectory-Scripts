@@ -62,12 +62,12 @@ Two builds ship side by side: **v1 (Classic)** and **v2 (Enhanced)** with creden
 # 📂 Project Structure
 
 ```text
-JoinUnjoinComputerTool GUI
+JoinUnjoinComputerTool-GUI
 │
-├── JoinUnjoinComputerTool - v1.ps1
-├── JoinUnjoinComputerTool - v1.exe
-├── JoinUnjoinComputerTool - v2.ps1
-├── JoinUnjoinComputerTool - v2.exe
+├── JoinUnjoinComputerTool-v1.ps1
+├── JoinUnjoinComputerTool-v1.exe
+├── JoinUnjoinComputerTool-v2.ps1
+├── JoinUnjoinComputerTool-v2.exe
 ├── Screenshot1.png
 ├── Screenshot2.png
 └── README.md
@@ -83,9 +83,9 @@ JoinUnjoinComputerTool GUI
 * Must be run as **Administrator**
 
 ### Installation
-1. Download `JoinUnjoinComputerTool - v1.ps1` or `JoinUnjoinComputerTool - v2.ps1` (v2 recommended).
-2. Run from an elevated PowerShell session: `.\JoinUnjoinComputerTool - v2.ps1`
-3. Or launch the compiled executable `JoinUnjoinComputerTool - v2.exe` without changing execution policy.
+1. Download `JoinUnjoinComputerTool-v1.ps1` or `JoinUnjoinComputerTool-v2.ps1` (v2 recommended).
+2. Run from an elevated PowerShell session: `.\JoinUnjoinComputerTool-v2.ps1`
+3. Or launch the compiled executable `JoinUnjoinComputerTool-v2.exe` without changing execution policy.
 
 ---
 
@@ -116,6 +116,20 @@ JoinUnjoinComputerTool GUI
 ### Permissions
 * Administrator privileges.
 * AD permissions for computer join, disjoin, and deletion; Entra ID permissions for device registration tasks.
+
+---
+
+## 🧰 Core Commands
+
+The PowerShell cmdlets and tools that drive the GUI operations.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADComputer` | Locates and inspects computer objects in AD | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer) |
+| `Add-Computer` | Joins the machine to the domain with OU selection | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/add-computer) |
+| `Remove-Computer` | Disjoins the machine to a workgroup | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-computer) |
+| `Get-CimInstance` | Reads Win32_ComputerSystem for domain/device state | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance) |
+| `dsregcmd` | Joins/leaves Entra ID and reports device join state | [Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/devices/troubleshoot-device-dsregcmd) |
 
 ---
 

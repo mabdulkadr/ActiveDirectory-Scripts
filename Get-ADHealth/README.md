@@ -104,6 +104,20 @@ $cred = Get-Credential
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the health checks.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADForest` | Enumerates all domains in the forest to build the DC list | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adforest) |
+| `Get-ADDomainController` | Discovers every Domain Controller per domain | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-addomaincontroller) |
+| `Test-Connection` | Probes ICMP reachability for each DC | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-connection) |
+| `Get-CimInstance` | Reads uptime, OS disk space, and time sync via remote WMI | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance) |
+| `Send-MailMessage` | Delivers the inline HTML report via SMTP | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/send-mailmessage) |
+
+---
+
 # 🛡 Operational Notes
 * Output: `ADHealthReport_yyyyMMdd_HHmmss.html` in `ReportPath`.
 * Tunable thresholds in the script (uptime warn 24h, disk free 5/30%, time drift 0.5/1.0s).

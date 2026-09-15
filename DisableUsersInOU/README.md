@@ -85,6 +85,18 @@ This script takes **no parameters** — configure the variables at the top of th
 
 ---
 
+## 🧰 Core Commands
+
+The PowerShell cmdlets that drive the bulk-disable workflow.
+
+| Command | Purpose | Docs |
+|---|---|---|
+| `Get-ADUser` | Finds every enabled user account in the target OU | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser) |
+| `Disable-ADAccount` | Disables each user account and applies the configured description | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/activedirectory/disable-adaccount) |
+| `Export-Csv` | Writes the optional per-action CSV report | [Microsoft Docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/export-csv) |
+
+---
+
 # 🛡 Operational Notes
 * Log file: `C:\Logs\DisableUsers_yyyy-MM-dd_HH-mm-ss.log`.
 * CSV report (when enabled): `C:\Reports\DisabledUsers_yyyyMMdd_HHmmss.csv`.
