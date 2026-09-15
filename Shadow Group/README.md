@@ -1,133 +1,141 @@
-# Shadow Group 
+<div align="center">
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
-![Version](https://img.shields.io/badge/version-3.0-green.svg)
+# 💻 Shadow Group
 
-## Overview
-**ShadowGroup.ps1** is a PowerShell script designed to ensure that a specific Active Directory (AD) group (Shadow Group) contains all users from one or more Organizational Units (OUs). It also removes users who no longer belong to the specified OUs, ensuring accurate membership management.
+**Synchronizes an Active Directory group with all users from one or more OUs — adding newcomers and removing departed users for policy-grade membership.**
 
-This script is useful for enforcing group-based policies, such as Fine-Grained Password Policies (FGPP), and maintaining accurate group membership without manual intervention.
+For Administrators enforcing group-based policies (such as Fine-Grained Password Policies) that require exact OU-to-group alignment.
 
----
+[![Mode](https://img.shields.io/badge/Mode-CLI-334155?style=for-the-badge)](#-usage)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://learn.microsoft.com/en-us/powershell/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0F172A?style=for-the-badge)](#%EF%B8%8F-requirements)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](#-license)
+[![Version](https://img.shields.io/badge/Version-3.0.0-334155?style=for-the-badge)](#-overview)
 
-## Features
-- Synchronizes an AD group with users from multiple OUs.
-- Supports **enabled users only** (optional filter).
-- Includes/excludes **child OUs** based on configuration.
-- Performs **dry-run mode** (logs actions without modifying AD if enabled).
-- Generates detailed **logs** for tracking changes.
-- Limits bulk modifications per execution to prevent excessive AD operations.
-- Can be scheduled as a **Windows Task** to automate execution from a Domain Controller.
+[Overview](#-overview) • [Features](#-features) • [Usage](#-usage) • [Parameters](#%EF%B8%8F-parameters) • [Requirements](#%EF%B8%8F-requirements) • [License](#-license)
+
+</div>
 
 ---
 
-## Prerequisites
-- **PowerShell 5.1+**
-- **Active Directory Module for Windows PowerShell**
-- **Domain Controller (DC) with Active Directory Web Services (ADWS)**
-- Proper permissions to manage group membership in AD
+# 📖 Overview
+
+**Shadow Group** keeps an Active Directory shadow group in exact sync with the users of one or more Organizational Units. It adds users who entered the OUs and removes users who no longer belong, writes every change to a detailed execution log, and caps bulk modifications per run to prevent excessive AD operations.
+
+Run it first in log-only mode to preview changes, then enable modifications and schedule it as a Windows Task on a Domain Controller for hands-free reconciliation.
 
 ---
 
-## Configuration
-All script parameters are defined in the **PARAMETERS** section at the beginning of the script:
+# ✨ Features
 
-- **$Server** → Domain Controller handling AD queries.
-- **$LogFile** → Path for storing execution logs.
-- **$Update** → Enable or disable actual modifications (`$true` applies changes, `$false` logs only).
-- **$EnabledOnly** → Include only enabled users in the shadow group.
-- **$OUDNs** → Array of OUs to monitor.
-- **$ChildOUs** → Whether to include child OUs.
-- **$GroupDN** → Distinguished Name (DN) of the shadow group.
-- **$MaxChanges** → Limits maximum users added/removed per execution.
+* **Multi-OU sync** — mirrors users from several OUs into one shadow group
+* **Enabled-users filter** — optionally include only enabled accounts
+* **Child-OU control** — include or exclude nested OUs per configuration
+* **Dry-run mode** — logs planned actions without touching AD
+* **Change cap** — limits additions/removals per execution as a safety valve
+* **Task-ready** — designed to run as a scheduled task from a Domain Controller
 
 ---
 
-## How to Run
-### 1. Test Run (No Changes Applied)
+# 📂 Project Structure
+
+```text
+Shadow Group
+│
+├── ShadowGroup.ps1
+└── README.md
+```
+
+---
+
+# 🚀 Usage
+
+### Test Run (No Changes Applied)
 ```powershell
 .\ShadowGroup.ps1
 ```
-This will **log actions** without modifying group membership.
 
-### 2. Apply Changes
-To enable modifications, ensure `$Update = $true` in the script, then run:
+### Apply Changes
 ```powershell
+# 1. Set $Update = $true inside the script
+# 2. Then run:
 .\ShadowGroup.ps1
 ```
 
-### 3. Run with Elevated Privileges
-Make sure to run PowerShell as **Administrator** for proper execution.
-
----
-
-## Automating with a Scheduled Task
-To run the script automatically on a **Domain Controller**, create a scheduled task:
-
-### Step 1: Open Task Scheduler
-1. Open **Task Scheduler** (`taskschd.msc`).
-2. Click **Create Basic Task**.
-
-### Step 2: Define the Task
-1. Name: **Shadow Group Sync**
-2. Description: **Ensures shadow group is synchronized with AD OUs.**
-3. Click **Next**.
-
-### Step 3: Set Trigger
-1. Choose **Daily** or **Hourly** based on your preference.
-2. Click **Next** and set the desired schedule.
-
-### Step 4: Set Action
-1. Select **Start a Program**.
-2. Program/script: `powershell.exe`
-3. Add arguments:
-   ```powershell
-   -ExecutionPolicy Bypass -File "C:\Path\To\ShadowGroup.ps1"
-   ```
-4. Click **Next**.
-
-### Step 5: Set Security Options
-1. Check **Run whether user is logged on or not**.
-2. Select **Run with highest privileges**.
-3. Click **Finish** and enter domain admin credentials when prompted.
-
-Now, the script will run automatically based on the schedule you set.
-
----
-
-## Logging
-Execution logs are stored in the specified log file (default: `C:\ShadowGroups\ShadowGroup.log`). Logs include:
-- Users added/removed.
-- Timestamp of execution.
-- Any encountered errors or warnings.
-
----
-
-## Example Output
-```plaintext
---- Script Execution Start: 2025-02-02 14:00:00 ---
-Users Removed: 12
-Users Added: 25
---- Script Execution End: 2025-02-02 14:01:00 ---
+### Schedule on a Domain Controller
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File "C:\Path\To\ShadowGroup.ps1"
 ```
 
 ---
 
-## Notes
-- If the shadow group does not exist, the script will **exit with an error**.
-- The script ensures **group membership consistency** with AD OUs.
-- If `$MaxChanges` is exceeded, the script will **require multiple runs** to complete synchronization.
+# ⚙️ Parameters
+
+All settings live in the **PARAMETERS** section at the top of the script — no command-line parameters.
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `$Server` | String | Domain Controller handling AD queries |
+| `$LogFile` | String | Path for execution logs (default `C:\ShadowGroups\ShadowGroup.log`) |
+| `$Update` | Bool | `$true` applies changes, `$false` logs only |
+| `$EnabledOnly` | Bool | Include only enabled users in the shadow group |
+| `$OUDNs` | String[] | Array of OUs to monitor |
+| `$ChildOUs` | Bool | Whether to include child OUs |
+| `$GroupDN` | String | Distinguished Name of the shadow group |
+| `$MaxChanges` | Int | Maximum users added/removed per execution |
 
 ---
 
-## License 
+# ⚙️ Requirements
+
+### Operating System
+* Windows Server **Domain Controller** (recommended) or domain-joined admin host
+
+### PowerShell
+* PowerShell **5.1 or later**
+
+### Permissions
+* **Active Directory Module** for Windows PowerShell
+* **ADWS** (Active Directory Web Services) on the target DC
+* Rights to manage group membership in AD (run elevated)
+
+---
+
+# 🛡 Operational Notes
+* If the shadow group does not exist, the script exits with an error — create it first.
+* If `$MaxChanges` is exceeded, further synchronization requires additional runs.
+* Logs include added/removed users, execution timestamps, and errors or warnings.
+* For scheduled runs: **Run whether user is logged on or not** + **Run with highest privileges**.
+
+---
+
+## 👤 Author
+
+**Mohammad Abdelkader Omar**  
+GitHub: [@mabdulkadr](https://github.com/mabdulkadr)  
+Website: [momar.tech](https://momar.tech)
+
+---
+
+## 📜 License
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠ Disclaimer
 
-This script is provided **as-is** without warranty.
-The author is **not responsible** for unintended modifications or data loss.
-Always test thoroughly before deploying in production.
+This skill and every script it generates are provided as-is with no warranty of any kind. Test generated tools in a staging environment before deploying to production. The authors assume no liability for any damage or data loss resulting from their use.
+
+---
+
+<div align="center">
+
+⭐ **If this skill saves you time, star the repo — it helps others find it.**
+
+[Report an Issue](../../issues) · [momar.tech](https://momar.tech)
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
+
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+
+</div>

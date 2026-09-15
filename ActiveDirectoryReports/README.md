@@ -1,166 +1,132 @@
-# Active Directory Reports
+<div align="center">
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
-![Version](https://img.shields.io/badge/version-1.0-green.svg)
+# 💻 Active Directory Reports
 
-## Overview
+**Generates modern, responsive HTML reports for your entire Active Directory environment from a single menu-driven console script.**
 
-This project provides a unified, modern, and responsive PowerShell script to generate **comprehensive HTML reports** for your Active Directory environment. All reports are saved in a timestamped and styled format, providing a clean overview of computer objects, domain controllers, workstations, servers, and more.
+For Administrators who need a clean, timestamped snapshot of computers, domain controllers, workstations, servers, and account status — without installing reporting suites.
 
-- **Modern HTML output:** Responsive, mobile-friendly, card-based reports with sticky headers.
-- **Multiple built-in reports:** Generate detailed reports for computers, servers, workstations, domain controllers, and more.
-- **Menu-driven interface:** Console menu (works in classic PowerShell and ISE).
-- **No dependencies beyond RSAT/AD module.**
+[![Mode](https://img.shields.io/badge/Mode-CLI-334155?style=for-the-badge)](#-usage)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://learn.microsoft.com/en-us/powershell/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0F172A?style=for-the-badge)](#%EF%B8%8F-requirements)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](#-license)
+[![Version](https://img.shields.io/badge/Version-1.0.0-334155?style=for-the-badge)](#-overview)
 
----
+[Overview](#-overview) • [Features](#-features) • [Usage](#-usage) • [Requirements](#%EF%B8%8F-requirements) • [License](#-license)
 
-## Requirements
-
-- Windows Server or Client with **PowerShell 5.1+**
-- **RSAT tools** (Remote Server Administration Tools) with the **Active Directory PowerShell module** enabled.
-- Run the script as a user with **read permissions on the AD** (Domain Admin recommended for full info).
+</div>
 
 ---
 
-## Features
+# 📖 Overview
 
-- **Complete Computer Object Report:**  
-  Get a full list of all computers in your AD with OS, IP, last logon, OU, and more.
+**Active Directory Reports** is a single PowerShell script that produces modern, responsive, card-based HTML reports for an Active Directory environment. A console menu lets you pick one of six built-in reports — or run all of them — with every report saved into a styled, timestamped folder for audit and documentation purposes.
 
-- **Domain Controllers Report:**  
-  Detailed information about all domain controllers, including site, OS, roles, last logon, and status.
-
-- **Workstations Report:**  
-  Focus on non-server Windows devices in your domain (desktops, laptops).
-
-- **Servers Report:**  
-  Detailed view of all Windows Server objects.
-
-- **Computer Account Status Report:**  
-  View enabled/disabled status, last logon, and password/account expiration.
-
-- **OS-Based Report:**  
-  Group computers by operating system, with device details under each.
+The script works in both classic PowerShell and PowerShell ISE, depends only on the RSAT Active Directory module, and needs no additional tooling.
 
 ---
 
-## How to Use
+# ✨ Features
 
-1. **Download the script** (e.g., `ActiveDirectoryReports.ps1`) to your machine.
-2. **Open PowerShell as Administrator.**
-3. **Run the script:**
-    ```powershell
-    C:\ADReports\ActiveDirectoryReports.ps1
-    ```
-4. **Choose a report from the menu** (type its number), or select “Run ALL Reports”.
-
-5. **After report generation,** you can open the HTML output from the menu prompt or browse to the `C:\ADReports` folder.
+* **Six built-in reports** — computers, domain controllers, workstations, servers, account status, and OS-based grouping
+* **Menu-driven interface** — type a number to pick a report, or select "Run ALL Reports"
+* **Modern HTML output** — responsive, mobile-friendly, card-based layouts with sticky headers
+* **Timestamped results** — every run is preserved in `C:\ADReports`
+* **Minimal prerequisites** — only the RSAT Active Directory PowerShell module
 
 ---
 
-## Scripts Included
+# 📂 Project Structure
 
-- **ActiveDirectoryReports.ps1**
-  - Unified menu-driven script for all reporting features below.
-
----
-
-## Script Details
-
-### 1. Complete Computer Object Report
-
-#### Purpose
-Lists all computer objects in AD with their OS, IP, OU, creation date, last logon, password info, and more.
-
-#### How to Run
-Choose `1` from the main menu.
-
-#### Output
-- HTML report: `AD_CompleteComputerReport_<date>.html`
+```text
+ActiveDirectoryReports
+│
+├── ActiveDirectoryReports.ps1
+└── README.md
+```
 
 ---
 
-### 2. Domain Controllers Report
+# 🚀 Usage
 
-#### Purpose
-Shows all domain controllers, their site, OS, GC/RODC roles, managed by, creation, and status.
+### Basic Usage
+```powershell
+.\ActiveDirectoryReports.ps1
+```
 
-#### How to Run
-Choose `2` from the main menu.
-
-#### Output
-- HTML report: `AD_DomainControllersReport_<date>.html`
-
----
-
-### 3. Workstations Report
-
-#### Purpose
-Shows all non-server computers (workstations/laptops), with extra details.
-
-#### How to Run
-Choose `3` from the main menu.
-
-#### Output
-- HTML report: `AD_WorkstationsReport_<date>.html`
+### Interactive Menu
+```text
+1 - Complete Computer Object Report
+2 - Domain Controllers Report
+3 - Workstations Report
+4 - Servers Report
+5 - Computer Account Status Report
+6 - OS Based Report
+7 - Run ALL Reports
+```
 
 ---
 
-### 4. Servers Report
+# ⚙️ Parameters
 
-#### Purpose
-Shows all Windows Server-class computers with key AD attributes.
+This script takes **no parameters** — all report selection is driven through the interactive console menu.
 
-#### How to Run
-Choose `4` from the main menu.
-
-#### Output
-- HTML report: `AD_ServersReport_<date>.html`
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `$CSS` / `Build-HtmlReport` | Scriptblock | *(embedded template)* | Edit to add your organization logo or brand colors |
 
 ---
 
-### 5. Computer Account Status Report
+# ⚙️ Requirements
 
-#### Purpose
-Shows enabled/disabled status, last logon, password and account expiration for all computers.
+### Operating System
+* Windows Server or Windows 10/11 (domain-joined)
 
-#### How to Run
-Choose `5` from the main menu.
+### PowerShell
+* PowerShell **5.1 or later**
 
-#### Output
-- HTML report: `AD_ComputerAccountStatusReport_<date>.html`
-
----
-
-### 6. OS Based Reports
-
-#### Purpose
-Groups computers by their operating system, displaying details under each OS.
-
-#### How to Run
-Choose `6` from the main menu.
-
-#### Output
-- HTML report: `AD_OSBasedReport_<date>.html`
+### Permissions
+* **RSAT** with the **Active Directory PowerShell** module enabled
+* Read permissions on Active Directory (**Domain Admin** recommended for full information)
+* Run as Administrator for best results
 
 ---
 
-## Notes
+# 🛡 Operational Notes
+* All reports are saved to `C:\ADReports` and are timestamped, so multiple runs are preserved.
+* The script is **read-only** — it never modifies Active Directory objects.
+* Data freshness depends on AD replication; the report reflects the DC that answered the query.
+* You can add an organization logo to reports by editing the `$CSS` and `Build-HtmlReport` section.
 
-- All reports are saved to: `C:\ADReports`
-- Reports are timestamped, so multiple runs are preserved.
-- Script works in both PowerShell ISE and classic PowerShell consoles.
-- You can add your organization logo to the report by editing the `$CSS` and `Build-HtmlReport` section.
+---
 
-## License
+## 👤 Author
 
+**Mohammad Abdelkader Omar**  
+GitHub: [@mabdulkadr](https://github.com/mabdulkadr)  
+Website: [momar.tech](https://momar.tech)
+
+---
+
+## 📜 License
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠ Disclaimer
 
-This script is provided **as-is** without warranty.
-The author is **not responsible** for unintended modifications or data loss.
-Always test thoroughly before deploying in production.
+This skill and every script it generates are provided as-is with no warranty of any kind. Test generated tools in a staging environment before deploying to production. The authors assume no liability for any damage or data loss resulting from their use.
+
+---
+
+<div align="center">
+
+⭐ **If this skill saves you time, star the repo — it helps others find it.**
+
+[Report an Issue](../../issues) · [momar.tech](https://momar.tech)
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
+
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+
+</div>

@@ -1,112 +1,123 @@
+<div align="center">
 
-# Disable and Delete Inactive AD Computers
+# 💻 Disable Inactive Computers
 
-![PowerShell](https://img.shields.io/badge/powershell-5.1%2B-blue.svg)
-![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+**Identifies stale computer accounts by last logon and optionally disables or deletes them, producing a color-coded HTML audit report.**
 
-## Overview
+For Administrators who need to clean up old computer objects in Active Directory with a visible audit trail.
 
-This PowerShell script identifies **inactive computer objects** in Active Directory based on their last logon date, and optionally:
-- Disables them
-- Deletes them
+[![Mode](https://img.shields.io/badge/Mode-CLI-334155?style=for-the-badge)](#-usage)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://learn.microsoft.com/en-us/powershell/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0F172A?style=for-the-badge)](#%EF%B8%8F-requirements)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](#-license)
+[![Version](https://img.shields.io/badge/Version-1.0.0-334155?style=for-the-badge)](#-overview)
 
-It then generates a **timestamped HTML report** showing:
-- Inactive computers
-- Disabled computers (if any)
-- Deleted computers (if any)
+[Overview](#-overview) • [Features](#-features) • [Usage](#-usage) • [Parameters](#%EF%B8%8F-parameters) • [Requirements](#%EF%B8%8F-requirements) • [License](#-license)
 
-The report is styled and saved locally for audit and documentation purposes.
+</div>
 
 ---
 
-## Features
+# 📖 Overview
 
-- Search computers in a specified Organizational Unit (OU)
-- Identify computers inactive for a configurable number of days
-- Prompt before disabling or deleting
-- Generate a full HTML report with clean formatting and color-coded tables
-- Optional console and log file output
+**Disable Inactive Computers** scans a configurable Organizational Unit, finds computer accounts that have not logged on within a set number of days, and optionally disables and then deletes them. Every run produces a timestamped HTML report with three color-coded tables — **Inactive**, **Disabled**, and **Deleted** — plus color-coded console output for immediate review.
 
 ---
 
-## Parameters
+# ✨ Features
 
-| Name           | Type   | Description                                                                 |
-|----------------|--------|-----------------------------------------------------------------------------|
-| `DaysInactive` | `int`  | Number of days of inactivity used to determine stale computer accounts.     |
-| `SearchBaseOU` | `string` | The distinguished name of the OU to scan (e.g., `OU=Domain Computers,DC=contoso,DC=local`). |
-
-Default values:
-```powershell
-$DaysInactive    = 180
-$SearchBaseOU    = "OU=Domain Computers,DC=ABC,DC=local"
-````
+* **OU-scoped scan** — searches only the Organizational Unit you specify
+* **Configurable threshold** — inactivity window set in days (`DaysInactive`)
+* **Two-phase cleanup** — first prompt disables stale computers, second prompt deletes them
+* **HTML audit report** — three color-coded tables with counts and timestamps
+* **Console + log output** — color-coded actions and optional file logging
 
 ---
 
-## How It Works
+# 📂 Project Structure
 
-1. Retrieves all computers from the specified OU.
-2. Filters out computers that haven't logged on within the past `DaysInactive`.
-3. Displays and optionally disables inactive computers.
-4. Prompts again and optionally deletes previously disabled computers.
-5. Generates a styled HTML report showing:
-
-   * Inactive computers
-   * Disabled computers
-   * Deleted computers
-
----
-
-## Output
-
-* ✅ **HTML Report**
-
-  * Path: `C:\Computers_Report_YYYY-MM-DD_HH-mm-ss.html`
-  * Contains 3 tables (Inactive, Disabled, Deleted)
-  * Includes counts and timestamps
-
-* ✅ **Console Output**
-
-  * Shows each action and prompt
-  * Color-coded for easy readability
-
----
-
-## Example
-
-```powershell
-.\DisableInactiveComputers.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=ABC,DC=local"
+```text
+Disable Inactive Computers
+│
+├── DisableInactiveComputers.ps1.ps1
+└── README.md
 ```
 
 ---
 
-## Requirements
+# 🚀 Usage
 
-* Windows PowerShell 5.1+
-* ActiveDirectory module (RSAT)
-* Domain-joined machine
+### Basic Usage
+```powershell
+.\DisableInactiveComputers.ps1.ps1
+```
+
+### With Parameters
+```powershell
+.\DisableInactiveComputers.ps1.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=contoso,DC=local"
+```
+
+---
+
+# ⚙️ Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `DaysInactive` | Int | No | `180` | Number of days of inactivity used to flag stale computer accounts |
+| `SearchBaseOU` | String | No | `OU=Domain Computers,DC=ABC,DC=local` | Distinguished name of the OU to scan |
+
+---
+
+# ⚙️ Requirements
+
+### Operating System
+* Windows PowerShell host on a domain-joined machine
+
+### PowerShell
+* PowerShell **5.1 or later**
+
+### Permissions
+* **ActiveDirectory** module (RSAT)
 * Permissions to query, disable, and delete computer objects in AD
 
 ---
 
-## Recommended Usage
-
-* Run in a test/staging OU before using in production
-* Schedule regularly to manage stale computer accounts
-* Back up AD before deletion (optional)
+# 🛡 Operational Notes
+* The HTML report is saved to `C:\Computers_Report_yyyy-MM-dd_HH-mm-ss.html` with tables for inactive, disabled, and deleted computers.
+* Run against a **test/staging OU** before using in production.
+* Schedule the script regularly to keep stale computer accounts in check.
+* Back up Active Directory before running the delete phase — removal is irreversible.
+* The script file shipped with a doubled extension (`DisableInactiveComputers.ps1.ps1`); calls must reference the full file name.
 
 ---
 
-## License
+## 👤 Author
 
+**Mohammad Abdelkader Omar**  
+GitHub: [@mabdulkadr](https://github.com/mabdulkadr)  
+Website: [momar.tech](https://momar.tech)
+
+---
+
+## 📜 License
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠ Disclaimer
 
-This script is provided **as-is** without warranty.
-The author is **not responsible** for unintended modifications or data loss.
-Always test thoroughly before deploying in production.
+This skill and every script it generates are provided as-is with no warranty of any kind. Test generated tools in a staging environment before deploying to production. The authors assume no liability for any damage or data loss resulting from their use.
+
+---
+
+<div align="center">
+
+⭐ **If this skill saves you time, star the repo — it helps others find it.**
+
+[Report an Issue](../../issues) · [momar.tech](https://momar.tech)
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
+
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+
+</div>
