@@ -10,7 +10,7 @@
     email, member-type counts (User / Group / Contact), nested group names and metadata, and
     inactivity flags — and exports everything into one timestamped CSV file. Also writes a
     matching execution log. If the ActiveDirectory module is missing, the script attempts a
-    self-install of the RSAT tools before failing cleanly.
+    self-install of the RSAT tools (elevation required) before failing cleanly.
 
 .TAGS
     ActiveDirectory, Reporting
@@ -19,15 +19,20 @@
     Windows
 
 .PERMISSIONS
-    Read access to groups and members (ActiveDirectory module)
+    Read access to groups and members (ActiveDirectory module); elevation only for the
+    optional RSAT self-install
 
 .AUTHOR
     Mohammad Abdelkader Omar
 
 .VERSION
-    1.1.0
+    1.2.0
 
 .CHANGELOG
+    1.2.0 (2026-09-16)
+    - Added canonical CLI logging, elevated RSAT install check, Write-Progress, and exit codes
+    - Report path now anchors beside the script (Law 12)
+
     1.1.0 (2026-09-16)
     - Standardized help header and section formatting
 
@@ -39,11 +44,11 @@
 
 .EXAMPLE
     .\AD-GroupsReport.ps1
-    Exports the full group inventory to C:\ADGroupsReport\ADGroupsReport_<timestamp>.csv.
+    Exports the full group inventory to <script-folder>\Reports\ADGroupsReport_<timestamp>.csv.
 
 .NOTES
     - Requires RSAT (ActiveDirectory module); the script attempts to install it when missing.
-    - Output folder: C:\ADGroupsReport (created on first run).
+    - Output folder: <script-folder>\Reports (created on first run).
     - Run from an elevated PowerShell session for the optional module install.
     - Read-only: queries groups and members but never modifies objects.
     - Exit code 0 on completion; 1 on module install/import failure.
@@ -51,74 +56,191 @@
 
 #Requires -Version 5.1
 
+$SolutionName = 'AD-GroupsReport'
+$ScriptMode   = 'run'
+
+$ErrorActionPreference = 'Stop'
+# --- Logging (CLI Configuration) --------------------------------------------
+$script:SystemDrive = if ($env:SystemDrive) { $env:SystemDrive.TrimEnd('\') } else {
+    [System.IO.Path]::GetPathRoot($env:SystemRoot).TrimEnd('\')
+}
+$script:LogRoot  = $null
+$script:LogFile  = $null
+$script:LogReady = $false
+
+function Initialize-Log {
+    [CmdletBinding()]
+    param(
+        [string]$SolutionName = 'EnterpriseAdminTool',
+        [string]$ScriptMode = 'run',
+        [ValidateSet('Intune', 'General')]
+        [string]$Type = 'General'
+    )
+
+    try {
+        if ($Type -eq 'Intune') {
+            $script:LogRoot = Join-Path $script:SystemDrive "IntuneLogs\$SolutionName"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName-$ScriptMode.txt"
+        } else {
+            $script:LogRoot = Join-Path $env:ProgramData "$SolutionName\Logs"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName`_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        }
+
+        if (-not (Test-Path -LiteralPath $script:LogRoot)) {
+            $null = [System.IO.Directory]::CreateDirectory($script:LogRoot)
+        }
+        if (-not (Test-Path -LiteralPath $script:LogFile)) {
+            $null = [System.IO.File]::Create($script:LogFile).Dispose()
+        }
+
+        $script:LogReady = $true
+        return $true
+    }
+    catch {
+        Write-Host "Log initialization failed: $($_.Exception.Message)" -ForegroundColor Red
+        $script:LogReady = $false
+        return $false
+    }
+}
+
+function Write-Banner {
+    [CmdletBinding()]
+    [Alias('Show-Banner')]
+    param()
+
+    $title      = '{0} | {1} | {2}' -f $SolutionName, $ScriptMode, (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+    $bannerLine = '=' * 78
+    $lines      = @('', $bannerLine, $title, $bannerLine)
+
+    foreach ($line in $lines) {
+        if ($line -eq $title) {
+            Write-Host $line -ForegroundColor White
+        } else {
+            Write-Host $line -ForegroundColor DarkGray
+        }
+
+        if ($script:LogReady -and $script:LogFile) {
+            Add-Content -LiteralPath $script:LogFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
+}
+
+function Write-Log {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [AllowEmptyString()]
+        [string]$Message = "",
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO"
+    )
+
+    if ([string]::IsNullOrEmpty($Message)) { return }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $fileLine  = "[$timestamp] [$Level] $Message"
+
+    $color = switch ($Level) {
+        "DEBUG"   { "DarkGray" }
+        "INFO"    { "Cyan" }
+        "SUCCESS" { "Green" }
+        "WARNING" { "Yellow" }
+        "ERROR"   { "Red" }
+    }
+    Write-Host $Message -ForegroundColor $color
+
+    if ($script:LogReady -and $script:LogFile) {
+        Add-Content -LiteralPath $script:LogFile -Value $fileLine -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+    }
+}
+
+function Finish-Script {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ExitCode,
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO",
+        [switch]$NoExit
+    )
+
+    Write-Log -Message $Message -Level $Level
+    if (-not $NoExit) {
+        exit $ExitCode
+    }
+}
+
+$null = Initialize-Log -SolutionName $SolutionName -ScriptMode $ScriptMode -Type 'General'
+Write-Banner
+
 #====================[ Module Check ]====================#
 
+# Returns $true only when the process runs from an elevated (admin) context.
+function Test-IsElevated {
+    return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
-    Write-Host "⚠️ 'ActiveDirectory' module not found. Attempting to install RSAT tools..." -ForegroundColor Yellow
+    Write-Log -Message "ActiveDirectory module not found. Checking for elevation..." -Level "WARNING"
+
+    if (-not (Test-IsElevated)) {
+        Write-Log -Message "RSAT install requires an elevated session. Re-run as Administrator." -Level "ERROR"
+        Finish-Script -ExitCode 1 -Message "Elevation required to install the ActiveDirectory module." -Level "ERROR"
+    }
 
     # Attempt installation for Windows 10/11 and Server 2019+
     try {
         Add-WindowsCapability -Online -Name "Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0" -ErrorAction Stop
-        Write-Host "✅ RSAT: Active Directory tools installed successfully." -ForegroundColor Green
+        Write-Log -Message "RSAT: Active Directory tools installed successfully." -Level "SUCCESS"
     } catch {
-        Write-Host "❌ Failed to install ActiveDirectory module. Please install RSAT manually." -ForegroundColor Red
-        exit 1
+        Write-Log -Message "Failed to install ActiveDirectory module. Please install RSAT manually." -Level "ERROR"
+        Finish-Script -ExitCode 1 -Message "Failed to install the ActiveDirectory module." -Level "ERROR"
     }
 }
 
 try {
     Import-Module ActiveDirectory -ErrorAction Stop
-    Write-Host "✅ ActiveDirectory module imported successfully." -ForegroundColor Green
+    Write-Log -Message "ActiveDirectory module imported successfully." -Level "SUCCESS"
 } catch {
-    Write-Host "❌ Failed to import ActiveDirectory module. Ensure RSAT tools are correctly installed." -ForegroundColor Red
-    exit 1
+    Write-Log -Message "Failed to import ActiveDirectory module. Ensure RSAT tools are correctly installed." -Level "ERROR"
+    Finish-Script -ExitCode 1 -Message "Failed to import the ActiveDirectory module." -Level "ERROR"
 }
 
 #====================[ Configuration ]====================#
 
+# Report path law: seed output beside the script, never from Get-Location alone.
+$scriptBase = if ($PSScriptRoot) { $PSScriptRoot }
+elseif ($PSCommandPath) { Split-Path -Parent $PSCommandPath }
+elseif ($MyInvocation.MyCommand.Path) { Split-Path -Parent $MyInvocation.MyCommand.Path }
+else { (Get-Location).Path }
+$BasePath = Join-Path $scriptBase "Reports"
+if (-not (Test-Path -LiteralPath $BasePath)) {
+    $null = [System.IO.Directory]::CreateDirectory($BasePath)
+    Write-Log -Message "Created output directory: $BasePath" -Level "INFO"
+}
+
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$BasePath  = "C:\ADGroupsReport"
-$LogFile   = "$BasePath\ADGroupsExport_$Timestamp.log"
-$CsvOutput = "$BasePath\ADGroupsReport_$Timestamp.csv"
-
-if (-not (Test-Path $BasePath)) {
-    New-Item -Path $BasePath -ItemType Directory -Force | Out-Null
-    Write-Host "📁 Created output directory: $BasePath" -ForegroundColor Cyan
-}
-
-#====================[ Logging Function ]====================#
-
-# Writes a timestamped entry to the console and the execution log file.
-function Write-Log {
-    param (
-        [string]$Message,
-        [ValidateSet("INFO", "SUCCESS", "ERROR", "WARNING")]
-        [string]$Level = "INFO"
-    )
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logEntry = "[$timestamp][$Level] $Message"
-
-    $color = switch ($Level) {
-        "INFO"     { "Cyan" }
-        "SUCCESS"  { "Green" }
-        "WARNING"  { "Yellow" }
-        "ERROR"    { "Red" }
-    }
-
-    Write-Host $logEntry -ForegroundColor $color
-    Add-Content -Path $LogFile -Value $logEntry
-}
-
-Write-Log "🔄 Starting unified Active Directory group export..." -Level "INFO"
+$CsvOutput = Join-Path $BasePath "ADGroupsReport_$Timestamp.csv"
 
 #====================[ Main Logic ]====================#
 
 $GroupReport = @()
 
 $Groups = Get-ADGroup -Filter * -Properties mail, description, GroupScope, GroupCategory, Members, whenCreated, whenChanged, displayName
-Write-Log "📦 Found $($Groups.Count) groups in Active Directory." -Level "INFO"
+Write-Log -Message "Found $($Groups.Count) groups in Active Directory." -Level "INFO"
+
+$processedCount = 0
+$total = @($Groups).Count
 
 foreach ($Group in $Groups) {
+    $processedCount++
+    # Activity = persistent label; Status = current item; PercentComplete = 0..100
+    Write-Progress -Activity 'Processing AD groups' `
+        -Status "Group $processedCount of $total : $($Group.Name)" `
+        -PercentComplete (($processedCount / [Math]::Max($total, 1)) * 100)
+
     $GroupName   = $Group.Name
     $DisplayName = $Group.DisplayName
     $GroupDN     = $Group.DistinguishedName
@@ -153,13 +275,13 @@ foreach ($Group in $Groups) {
                             $NestedGroup = Get-ADGroup -Identity $Member.DistinguishedName -Properties mail, Members, GroupScope, GroupCategory
                             $NestedDetails += "$($NestedGroup.Name):$($NestedGroup.GroupScope)-$($NestedGroup.GroupCategory):$($NestedGroup.Mail):$($NestedGroup.Members.Count)"
                         } catch {
-                            Write-Log "⚠️ Could not get nested group details: $($Member.Name)" -Level "WARNING"
+                            Write-Log -Message "Could not get nested group details: $($Member.Name)" -Level "WARNING"
                         }
                     }
                     'contact' { $CountContact++ }
                 }
             } catch {
-                Write-Log "⚠️ Failed to resolve member DN: $MemberDN" -Level "WARNING"
+                Write-Log -Message "Failed to resolve member DN: $MemberDN" -Level "WARNING"
             }
         }
 
@@ -181,18 +303,24 @@ foreach ($Group in $Groups) {
             'NestedGroups_Details'   = ($NestedDetails -join ' | ')
         }
 
-        Write-Log "✅ Processed group: $GroupName (Total Members: $($CountUser + $CountGroup + $CountContact))" -Level "SUCCESS"
+        if ($processedCount % 10 -eq 0) {
+            Write-Log -Message "Processed $processedCount of $total groups..." -Level "INFO"
+        }
     } catch {
-        Write-Log "❌ Failed to process group: $GroupName - $_" -Level "ERROR"
+        Write-Log -Message "Failed to process group: $GroupName - $($_.Exception.Message)" -Level "ERROR"
     }
 }
+
+# Always close the progress bar when the loop exits (success OR failure)
+Write-Progress -Activity 'Processing AD groups' -Completed
 
 #====================[ Export CSV ]====================#
 try {
     $GroupReport | Export-Csv -Path $CsvOutput -NoTypeInformation -Encoding UTF8
-    Write-Log "📁 Exported unified group report to: $CsvOutput" -Level "SUCCESS"
+    Write-Log -Message "Exported unified group report to: $CsvOutput" -Level "SUCCESS"
 } catch {
-    Write-Log "❌ Failed to export CSV: $_" -Level "ERROR"
+    Write-Log -Message "Failed to export CSV: $($_.Exception.Message)" -Level "ERROR"
+    Finish-Script -ExitCode 1 -Message "Failed to export the group report." -Level "ERROR"
 }
 
-Write-Log "🏁 Script execution completed." -Level "INFO"
+Finish-Script -ExitCode 0 -Message "Script execution completed. $($GroupReport.Count) group(s) exported." -Level "SUCCESS"

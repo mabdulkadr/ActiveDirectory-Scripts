@@ -8,8 +8,9 @@
 .DESCRIPTION
     Combines six essential AD reporting scripts into one menu-driven tool. Each report outputs
     a modern, responsive HTML file ready for browser viewing. Features a centralized CSS for a
-    consistent professional look, timestamped reports saved to C:\ADReports, and a console menu
-    that works in PowerShell ISE and classic console. The tool is read-only and only queries AD.
+    consistent professional look, timestamped reports saved to a Reports folder beside the
+    script, and a console menu that works in PowerShell ISE and classic console. The tool is
+    read-only and only queries AD.
 
 .TAGS
     ActiveDirectory, Reporting
@@ -24,9 +25,13 @@
     Mohammad Abdelkader Omar
 
 .VERSION
-    1.1.0
+    1.2.0
 
 .CHANGELOG
+    1.2.0 (2026-09-16)
+    - Added canonical CLI logging, $ErrorActionPreference = 'Stop', and exit codes
+    - Report path now anchors beside the script (Law 12)
+
     1.1.0 (2026-09-16)
     - Standardized help header and section formatting
 
@@ -42,22 +47,148 @@
     report or all reports, then optionally open the result in the browser.
 
 .NOTES
-    - Run as Administrator for best results.
+    - Run as Administrator for the first run so the Reports folder is created beside the script.
     - Requires RSAT (ActiveDirectory module) and read access to AD.
-    - Reports are saved to C:\ADReports with timestamps so multiple runs are preserved.
+    - Reports are saved to <script-folder>\Reports with timestamps so multiple runs are preserved.
     - Read-only: never modifies Active Directory objects.
+    - Exit codes: 0 = launched/returned cleanly; 1 = fatal module or path error.
 #>
 
 #Requires -Version 5.1
 
+$SolutionName = 'ActiveDirectoryReports'
+$ScriptMode   = 'run'
+
+$ErrorActionPreference = 'Stop'
+# --- Logging (CLI Configuration) --------------------------------------------
+$script:SystemDrive = if ($env:SystemDrive) { $env:SystemDrive.TrimEnd('\') } else {
+    [System.IO.Path]::GetPathRoot($env:SystemRoot).TrimEnd('\')
+}
+$script:LogRoot  = $null
+$script:LogFile  = $null
+$script:LogReady = $false
+
+function Initialize-Log {
+    [CmdletBinding()]
+    param(
+        [string]$SolutionName = 'EnterpriseAdminTool',
+        [string]$ScriptMode = 'run',
+        [ValidateSet('Intune', 'General')]
+        [string]$Type = 'General'
+    )
+
+    try {
+        if ($Type -eq 'Intune') {
+            $script:LogRoot = Join-Path $script:SystemDrive "IntuneLogs\$SolutionName"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName-$ScriptMode.txt"
+        } else {
+            $script:LogRoot = Join-Path $env:ProgramData "$SolutionName\Logs"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName`_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        }
+
+        if (-not (Test-Path -LiteralPath $script:LogRoot)) {
+            $null = [System.IO.Directory]::CreateDirectory($script:LogRoot)
+        }
+        if (-not (Test-Path -LiteralPath $script:LogFile)) {
+            $null = [System.IO.File]::Create($script:LogFile).Dispose()
+        }
+
+        $script:LogReady = $true
+        return $true
+    }
+    catch {
+        Write-Host "Log initialization failed: $($_.Exception.Message)" -ForegroundColor Red
+        $script:LogReady = $false
+        return $false
+    }
+}
+
+function Write-Banner {
+    [CmdletBinding()]
+    [Alias('Show-Banner')]
+    param()
+
+    $title      = '{0} | {1} | {2}' -f $SolutionName, $ScriptMode, (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+    $bannerLine = '=' * 78
+    $lines      = @('', $bannerLine, $title, $bannerLine)
+
+    foreach ($line in $lines) {
+        if ($line -eq $title) {
+            Write-Host $line -ForegroundColor White
+        } else {
+            Write-Host $line -ForegroundColor DarkGray
+        }
+
+        if ($script:LogReady -and $script:LogFile) {
+            Add-Content -LiteralPath $script:LogFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
+}
+
+function Write-Log {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [AllowEmptyString()]
+        [string]$Message = "",
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO"
+    )
+
+    if ([string]::IsNullOrEmpty($Message)) { return }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $fileLine  = "[$timestamp] [$Level] $Message"
+
+    $color = switch ($Level) {
+        "DEBUG"   { "DarkGray" }
+        "INFO"    { "Cyan" }
+        "SUCCESS" { "Green" }
+        "WARNING" { "Yellow" }
+        "ERROR"   { "Red" }
+    }
+    Write-Host $Message -ForegroundColor $color
+
+    if ($script:LogReady -and $script:LogFile) {
+        Add-Content -LiteralPath $script:LogFile -Value $fileLine -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+    }
+}
+
+function Finish-Script {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ExitCode,
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO",
+        [switch]$NoExit
+    )
+
+    Write-Log -Message $Message -Level $Level
+    if (-not $NoExit) {
+        exit $ExitCode
+    }
+}
+
+$null = Initialize-Log -SolutionName $SolutionName -ScriptMode $ScriptMode -Type 'General'
+Write-Banner
+
 #====================[ Global Settings ]====================#
 
+# Report path law: seed output beside the script, never from Get-Location alone.
+$scriptBase = if ($PSScriptRoot) { $PSScriptRoot }
+elseif ($PSCommandPath) { Split-Path -Parent $PSCommandPath }
+elseif ($MyInvocation.MyCommand.Path) { Split-Path -Parent $MyInvocation.MyCommand.Path }
+else { (Get-Location).Path }
+
 # Output directory for all reports
-$ReportPath = "C:\ADReports"
+$ReportPath = Join-Path $scriptBase "Reports"
 
 if (-not (Test-Path $ReportPath)) {
     New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null
-    Write-Host "📁 Created output directory: $ReportPath" -ForegroundColor Cyan
+    Write-Log -Message "Created output directory: $ReportPath" -Level "INFO"
 }
 
 # Timestamp for filenames
@@ -126,8 +257,8 @@ tr:hover { background: #d4e3fa55; }
 try {
     Import-Module ActiveDirectory -ErrorAction Stop
 } catch {
-    Write-Host "ActiveDirectory module is required. Please install RSAT and try again." -ForegroundColor Red
-    exit
+    Write-Log -Message "ActiveDirectory module is required. Please install RSAT and try again." -Level "ERROR"
+    Finish-Script -ExitCode 1 -Message "ActiveDirectory module is missing." -Level "ERROR"
 }
 If (-not (Test-Path $ReportPath)) { New-Item -Path $ReportPath -ItemType Directory | Out-Null }
 
@@ -193,10 +324,10 @@ function Show-CompleteComputerObjectReport {
         $frag = $ComputerData | ConvertTo-Html -Fragment
         $html = Build-HtmlReport "Complete AD Computer Report" $frag "<h2>All Computer Objects</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "Complete Computer Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "Complete Computer Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -209,10 +340,10 @@ function Show-DomainControllersReport {
         $frag = $DCs | ConvertTo-Html -Fragment
         $html = Build-HtmlReport "AD Domain Controllers Report" $frag "<h2>Domain Controllers</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "Domain Controllers Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "Domain Controllers Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -226,10 +357,10 @@ function Show-WorkstationsReport {
         $frag = $WorkstationData | ConvertTo-Html -Fragment
         $html = Build-HtmlReport "AD Workstations Report" $frag "<h2>Workstations</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "Workstations Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "Workstations Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -243,10 +374,10 @@ function Show-ServersReport {
         $frag = $ServerData | ConvertTo-Html -Fragment
         $html = Build-HtmlReport "AD Servers Report" $frag "<h2>Servers</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "Servers Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "Servers Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -260,10 +391,10 @@ function Show-ComputerAccountStatusReport {
         $frag = $AccountStatusData | ConvertTo-Html -Fragment
         $html = Build-HtmlReport "AD Computer Account Status Report" $frag "<h2>Computer Account Status</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "Computer Account Status Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "Computer Account Status Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -284,10 +415,10 @@ function Show-OSBasedReports {
         }
         $html = Build-HtmlReport "AD OS-Based Computer Report" $OSBasedHTML "<h2>Computers by Operating System</h2>"
         $html | Out-File $ReportFile -Encoding UTF8
-        Write-Host "OS-Based Computer Report generated: $ReportFile" -ForegroundColor Green
+        Write-Log -Message "OS-Based Computer Report generated: $ReportFile" -Level "SUCCESS"
         Prompt-OpenReport $ReportFile
     } catch {
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Log -Message "Error: $($_.Exception.Message)" -Level "ERROR"
     }
 }
 
@@ -300,7 +431,7 @@ function Run-AllReports {
     Show-ServersReport
     Show-ComputerAccountStatusReport
     Show-OSBasedReports
-    Write-Host "`nAll reports have been generated." -ForegroundColor Green
+    Write-Log -Message "All reports have been generated." -Level "SUCCESS"
 }
 
 #====================[ Main Menu ]====================#
@@ -345,3 +476,5 @@ do {
         Wait-AnyKey
     }
 } while ($choice -ne '0')
+
+Finish-Script -ExitCode 0 -Message "Script exited cleanly." -Level "SUCCESS"

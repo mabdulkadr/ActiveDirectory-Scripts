@@ -35,9 +35,13 @@
     Mohammad Abdelkader Omar
 
 .VERSION
-    1.1.0
+    1.2.0
 
 .CHANGELOG
+    1.2.0 (2026-09-16)
+    - Added canonical CLI logging, $ErrorActionPreference = 'Stop', Write-Progress, and exit codes
+    - Report path now anchors beside the script (Law 12)
+
     1.1.0 (2026-09-16)
     - Standardized help header and script formatting
 
@@ -51,7 +55,7 @@
     One or more domain DNS names to scope the check. If omitted, scans all domains in the forest.
 
 .PARAMETER ReportPath
-    Folder to save the HTML report. Default: C:\Reports
+    Folder to save the HTML report. Default: <script-folder>\Reports
 
 .PARAMETER SendEmail
     If specified, sends the report via SMTP (inline HTML + file attachment).
@@ -79,7 +83,8 @@
 
 .EXAMPLE
     .\Get-ADHealth.ps1
-    Runs the health check against every DC in the forest and saves the HTML report to C:\Reports.
+    Runs the health check against every DC in the forest and saves the HTML report to
+    <script-folder>\Reports\ADHealthReport_<timestamp>.html.
 
 .EXAMPLE
     .\Get-ADHealth.ps1 -DomainName "corp.contoso.com" -SendEmail -UserTo "it-admins@contoso.com"
@@ -95,14 +100,15 @@
 .NOTES
     - Requires RSAT (ActiveDirectory module) and DCDIAG in PATH for full test coverage.
     - Replace "<REPLACE_WITH_SMTP_PASSWORD>" below if you plan to use -SendEmail.
-    - Exported HTML report: C:\Reports\ADHealth_<timestamp>.html
-    - Exit code 0 on completion; 1 when the AD module is unavailable.
+    - Exported HTML report: <script-folder>\Reports\ADHealthReport_<timestamp>.html
+    - Log file: %ProgramData%\Get-ADHealth\Logs\
+    - Exit code 0 on completion; 1 when the AD module is unavailable or on fatal error.
 #>
 
 [CmdletBinding()]
 param(
     [string[]]$DomainName,
-    [string]$ReportPath = 'C:\Reports',
+    [string]$ReportPath = '',
 
     [switch]$SendEmail,
     [string]$Subject    = 'Domain Controller Health Check',
@@ -116,23 +122,154 @@ param(
     
 )
 
+$SolutionName = 'GetADHealth'
+$ScriptMode   = 'run'
+
+$ErrorActionPreference = 'Stop'
+# --- Logging (CLI Configuration) --------------------------------------------
+$script:SystemDrive = if ($env:SystemDrive) { $env:SystemDrive.TrimEnd('\') } else {
+    [System.IO.Path]::GetPathRoot($env:SystemRoot).TrimEnd('\')
+}
+$script:LogRoot  = $null
+$script:LogFile  = $null
+$script:LogReady = $false
+
+function Initialize-Log {
+    [CmdletBinding()]
+    param(
+        [string]$SolutionName = 'EnterpriseAdminTool',
+        [string]$ScriptMode = 'run',
+        [ValidateSet('Intune', 'General')]
+        [string]$Type = 'General'
+    )
+
+    try {
+        if ($Type -eq 'Intune') {
+            $script:LogRoot = Join-Path $script:SystemDrive "IntuneLogs\$SolutionName"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName-$ScriptMode.txt"
+        } else {
+            $script:LogRoot = Join-Path $env:ProgramData "$SolutionName\Logs"
+            $script:LogFile = Join-Path $script:LogRoot "$SolutionName`_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        }
+
+        if (-not (Test-Path -LiteralPath $script:LogRoot)) {
+            $null = [System.IO.Directory]::CreateDirectory($script:LogRoot)
+        }
+        if (-not (Test-Path -LiteralPath $script:LogFile)) {
+            $null = [System.IO.File]::Create($script:LogFile).Dispose()
+        }
+
+        $script:LogReady = $true
+        return $true
+    }
+    catch {
+        Write-Host "Log initialization failed: $($_.Exception.Message)" -ForegroundColor Red
+        $script:LogReady = $false
+        return $false
+    }
+}
+
+function Write-Banner {
+    [CmdletBinding()]
+    [Alias('Show-Banner')]
+    param()
+
+    $title      = '{0} | {1} | {2}' -f $SolutionName, $ScriptMode, (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+    $bannerLine = '=' * 78
+    $lines      = @('', $bannerLine, $title, $bannerLine)
+
+    foreach ($line in $lines) {
+        if ($line -eq $title) {
+            Write-Host $line -ForegroundColor White
+        } else {
+            Write-Host $line -ForegroundColor DarkGray
+        }
+
+        if ($script:LogReady -and $script:LogFile) {
+            Add-Content -LiteralPath $script:LogFile -Value $line -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
+}
+
+function Write-Log {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [AllowEmptyString()]
+        [string]$Message = "",
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO"
+    )
+
+    if ([string]::IsNullOrEmpty($Message)) { return }
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $fileLine  = "[$timestamp] [$Level] $Message"
+
+    $color = switch ($Level) {
+        "DEBUG"   { "DarkGray" }
+        "INFO"    { "Cyan" }
+        "SUCCESS" { "Green" }
+        "WARNING" { "Yellow" }
+        "ERROR"   { "Red" }
+    }
+    Write-Host $Message -ForegroundColor $color
+
+    if ($script:LogReady -and $script:LogFile) {
+        Add-Content -LiteralPath $script:LogFile -Value $fileLine -Encoding UTF8 -ErrorAction SilentlyContinue -WhatIf:$false
+    }
+}
+
+function Finish-Script {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$ExitCode,
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [ValidateSet("INFO", "SUCCESS", "WARNING", "ERROR", "DEBUG")]
+        [string]$Level = "INFO",
+        [switch]$NoExit
+    )
+
+    Write-Log -Message $Message -Level $Level
+    if (-not $NoExit) {
+        exit $ExitCode
+    }
+}
+
+$null = Initialize-Log -SolutionName $SolutionName -ScriptMode $ScriptMode -Type 'General'
+Write-Banner
+
 $Password   = ConvertTo-SecureString "<REPLACE_WITH_SMTP_PASSWORD>" -AsPlainText -Force
 $Credential = New-Object System.Management.Automation.PSCredential ($UserFrom, $Password)
 
 #region Pre-flight & Globals
 # -------------------------
 
+# Report path law: seed output beside the script, never from Get-Location alone.
+if ([string]::IsNullOrEmpty($ReportPath)) {
+    $scriptBase = if ($PSScriptRoot) { $PSScriptRoot }
+    elseif ($PSCommandPath) { Split-Path -Parent $PSCommandPath }
+    elseif ($MyInvocation.MyCommand.Path) { Split-Path -Parent $MyInvocation.MyCommand.Path }
+    else { (Get-Location).Path }
+    $ReportPath = Join-Path $scriptBase "Reports"
+    if (-not (Test-Path -LiteralPath $ReportPath)) {
+        $null = [System.IO.Directory]::CreateDirectory($ReportPath)
+    }
+}
+
 # Require AD module
 try {
     Import-Module ActiveDirectory -ErrorAction Stop
 } catch {
-    Write-Error "ActiveDirectory module not found. Install RSAT/AD tools and try again."
-    return
+    Write-Log -Message "ActiveDirectory module not found. Install RSAT/AD tools and try again." -Level "ERROR"
+    Finish-Script -ExitCode 1 -Message "ActiveDirectory module is missing." -Level "ERROR"
 }
 
 # Check for DCDIAG
 if (-not (Get-Command dcdiag.exe -ErrorAction SilentlyContinue)) {
-    Write-Warning "DCDIAG not found in PATH. Install RSAT or run on a DC for full test coverage."
+    Write-Log -Message "DCDIAG not found in PATH. Install RSAT or run on a DC for full test coverage." -Level "WARNING"
 }
 
 # Email credential fallback if only -Password was provided
@@ -425,28 +562,26 @@ function Get-DCHealthState {
     }
 
     # 3) Numeric thresholds (can escalate to Critical)
-    try {
-        $gb = [double]$DC['OS Free Space (GB)']
+    $gb = $DC['OS Free Space (GB)'] -as [double]
+    if ($null -ne $gb) {
         if ($gb -lt $Thresholds.FreeGBFail) { return 'Critical' }
         if ($gb -lt $Thresholds.FreeGBWarn) { $warnTriggered = $true }
-    } catch {}
+    }
 
-    try {
-        $pct = [int]$DC['OS Free Space (%)']
+    $pct = $DC['OS Free Space (%)'] -as [int]
+    if ($null -ne $pct) {
         if ($pct -le $Thresholds.FreePctFail) { return 'Critical' }
         if ($pct -le $Thresholds.FreePctWarn) { $warnTriggered = $true }
-    } catch {}
+    }
 
-    try {
-        $ofs = [double]$DC['Time offset (seconds)']
+    $ofs = $DC['Time offset (seconds)'] -as [double]
+    if ($null -ne $ofs) {
         if ($ofs -ge $Thresholds.TimeFailSeconds) { return 'Critical' }
         if ($ofs -ge $Thresholds.TimeWarnSeconds) { $warnTriggered = $true }
-    } catch {}
+    }
 
-    try {
-        $upt = [int]$DC['Uptime (hours)']
-        if ($upt -le $Thresholds.UptimeWarnHours) { $warnTriggered = $true }
-    } catch {}
+    $upt = $DC['Uptime (hours)'] -as [int]
+    if ($null -ne $upt -and $upt -le $Thresholds.UptimeWarnHours) { $warnTriggered = $true }
 
     if ($warnTriggered) { return 'Warning' }
     return 'Healthy'
@@ -538,7 +673,8 @@ function Build-EmailSafeHtmlReport {
                 $gbClass   = Get-StatusClass 'OS Free Space (GB)'    $dc['OS Free Space (GB)']
                 $pctClass  = Get-StatusClass 'OS Free Space (%)'     $dc['OS Free Space (%)']
                 $ofsClass  = Get-StatusClass 'Time offset (seconds)' $dc['Time offset (seconds)']
-                $pct = 0; try { $pct = [int]$dc['OS Free Space (%)'] } catch {}
+                $pct = $dc['OS Free Space (%)'] -as [int]
+                if ($null -eq $pct) { $pct = 0 }
 
                 $state = $dc['__State']
                 $stateBadge = switch($state){ 'Critical' {NewBadge 'Critical' 'fail'} 'Warning' {NewBadge 'Warning' 'warn'} default {NewBadge 'Healthy' 'pass'} }
@@ -686,25 +822,39 @@ function Build-EmailSafeHtmlReport {
 
 # Determine scope
 if (-not $DomainName) {
-    Write-Host "No domain specified: scanning all domains in forest" -ForegroundColor Yellow
+    Write-Log -Message "No domain specified: scanning all domains in forest" -Level "WARNING"
     $domains = Get-AllDomains
 } else {
     $domains = $DomainName
 }
 
 # Collect
+$grandTotal = 0
+$grandDone  = 0
 foreach ($domain in $domains) {
-    Write-Host "Scanning domain: $domain" -ForegroundColor Cyan
+    Write-Log -Message "Scanning domain: $domain" -Level "INFO"
     $dcs = Get-AllDomainControllers -ComputerName $domain
-    $total = $dcs.Count
+    $total = @($dcs).Count
+    $grandTotal += $total
+}
+
+foreach ($domain in $domains) {
+    $dcs = Get-AllDomainControllers -ComputerName $domain
+    $total = @($dcs).Count
     $i = 0
 
     foreach ($dc in $dcs) {
         $i++
+        $grandDone++
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         $name = $dc.HostName
 
-        Write-Host ("  [{0}/{1}] {2}" -f $i, $total, $name) -ForegroundColor Gray
+        # Activity = persistent label; Status = current item; PercentComplete = 0..100
+        Write-Progress -Activity "Scannning domain: $domain" `
+            -Status "Domain Controller $i of $total : $name" `
+            -PercentComplete (($grandDone / [Math]::Max($grandTotal, 1)) * 100)
+
+        Write-Log -Message ("  [{0}/{1}] {2}" -f $i, $total, $name) -Level "INFO"
 
         $dcdiag = Get-DomainControllerDCDiagTestResults -ComputerName $name
         $svc    = Get-DomainControllerServices -ComputerName $name
@@ -751,6 +901,9 @@ foreach ($domain in $domains) {
 
         $allTestedDomainControllers.Add($row)
     }
+
+    # Always close the progress bar when the domain loop exits (success OR failure)
+    Write-Progress -Activity "Scannning domain: $domain" -Completed
 }
 
 # Build HTML (use the exact email layout for the file too)
@@ -764,29 +917,28 @@ $htmlreport  = Build-EmailSafeHtmlReport -Items $allTestedDomainControllers `
 if (-not (Test-Path $ReportPath)) { New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null }
 $reportFile = Join-Path $ReportPath ("ADHealthReport_{0}.html" -f $reportFileNameTime)
 $htmlreport | Out-File -FilePath $reportFile -Encoding UTF8
-Write-Host "✔ Report saved to: $reportFile" -ForegroundColor Green
+Write-Log -Message "Report saved to: $reportFile" -Level "SUCCESS"
 
 # Email
-
 $emailHtml = Build-EmailSafeHtmlReport -Items $allTestedDomainControllers `
     -Forest $forestName -Generated $reportTime `
     -Title "Domain Controller Health – $forestName" `
     -Description " Performs a comprehensive health check of all domain controllers in a specified domain
     or across the entire Active Directory forest. Executed via a scheduled task on DC03."
 
-
-    if (-not $Credential) {
-        Write-Error "SendEmail requested but no Credential provided (or -Password to build one)."
-    } else {
-        try {
-            Send-MailMessage -From $UserFrom -To $UserTo -Subject $Subject `
-              -Body $emailHtml -BodyAsHtml -SmtpServer $SmtpServer -Port $Port -UseSsl `
-              -Credential $Credential -Encoding ([System.Text.Encoding]::UTF8)
-            Write-Host "✔ Email sent." -ForegroundColor Green
-        } catch {
-            Write-Error "Failed to send email: $($_.Exception.Message)"
-        }
+if (-not $Credential) {
+    Write-Log -Message "SendEmail requested but no Credential provided (or -Password to build one)." -Level "ERROR"
+} else {
+    try {
+        Send-MailMessage -From $UserFrom -To $UserTo -Subject $Subject `
+          -Body $emailHtml -BodyAsHtml -SmtpServer $SmtpServer -Port $Port -UseSsl `
+          -Credential $Credential -Encoding ([System.Text.Encoding]::UTF8)
+        Write-Log -Message "Email sent." -Level "SUCCESS"
+    } catch {
+        Write-Log -Message "Failed to send email: $($_.Exception.Message)" -Level "ERROR"
     }
+}
 
+Finish-Script -ExitCode 0 -Message "Health check completed. Report: $reportFile" -Level "SUCCESS"
 
 #endregion Main
