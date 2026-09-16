@@ -1,27 +1,51 @@
-﻿<#
+<#
+.TITLE
+    JoinUnjoinComputerTool - WPF GUI for domain join/unjoin with Message Center (v2)
+
 .SYNOPSIS
-    Join/Unjoin Computer Tool – WPF GUI with Message Center & Credential/DC Status (PowerShell 5.1)
+    Joins or unjoins a computer from a domain via a WPF GUI with credential and DC status.
 
 .DESCRIPTION
     Compact WPF tool to:
-      • Set/validate AD credentials (button in Domain Configuration)
-      • Show saved Username + Cred Status (Connected/Not Connected/Error)
-      • Pick OU and join the computer to a domain
-      • Disjoin to WORKGROUP
-      • Delete computer from AD (only if disabled)
-      • Show live PC info (Name, IP, Domain, DC Status, Entra ID, SCCM, Co-Management)
-      • Message Center: color-coded log (INFO/SUCCESS/WARNING/ERROR), Copy All, Clear
+      - Set/validate AD credentials (button in Domain Configuration)
+      - Show saved Username + Cred Status (Connected/Not Connected/Error)
+      - Pick an OU and join the computer to a domain
+      - Disjoin to WORKGROUP
+      - Delete computer from AD (only if disabled)
+      - Show live PC info (Name, IP, Domain, DC Status, Entra ID, SCCM, Co-Management)
+      - Message Center: color-coded log (INFO/SUCCESS/WARNING/ERROR), Copy All, Clear
 
-.PARAMETERS
-    -DefaultDomainController  FQDN of the Domain Controller
-    -DefaultDomainName        FQDN of the Domain
-    -DefaultSearchBase        Default OU DN for joins
+.PARAMETER DefaultDomainController
+    FQDN of the Domain Controller used for AD operations.
+
+.PARAMETER DefaultDomainName
+    FQDN of the domain used for joins and disjoins.
+
+.PARAMETER DefaultSearchBase
+    Default OU Distinguished Name used as the join target.
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    2.5.0
+
+.CHANGELOG
+    2.5.0 (2026-09-16)
+    - Standardized help header and section formatting
+    - Fixed PS5.1 ternary usage + all braces; added credentials/DC status (2025-01-20)
+
+.LASTUPDATE
+    2026-09-16
 
 .NOTES
-    Author  : Mohammad Abdulkader Omar
-    Website : https://momar.tech
-    Date    : 2025-01-20
-    Version : 2.5  (Fixed PS5.1 ternary usage + all braces; added credentials/DC status)
+    Requires: PowerShell 5.1 with WPF (PresentationFramework) and the
+    System.DirectoryServices.AccountManagement assembly.
+
+    GUI only: no exit code contract.
+
+.TAGS
+    ActiveDirectory, WPF GUI, Join/Unjoin, Domain Join
 #>
 
 [CmdletBinding()]
@@ -31,7 +55,7 @@ param(
     [string]$DefaultSearchBase       = "OU=Domain Computers,DC=example,DC=local"
 )
 
-# -------------------- Assemblies & Globals --------------------
+#====================[ Assemblies & Globals ]====================#
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 Add-Type -AssemblyName System.DirectoryServices.AccountManagement
 
@@ -62,7 +86,7 @@ $script:BrushSuccessUI = New-Brush "#0A8A0A"  # green
 $script:BrushWarnUI = New-Brush "#B58900"  # amber
 $script:BrushErrorUI = New-Brush "#D13438"  # red
 
-# -------------------- Dialogs & Helpers --------------------
+#====================[ Dialogs & Helpers ]====================#
 function Show-WPFMessage {
     [CmdletBinding()]
     param(
@@ -240,7 +264,7 @@ function Get-UacEnabledString {
     if ($UserAccountControl -band 2) { 'Disabled' } else { 'Enabled' }
 }
 
-# --- AD search helpers in script scope (visible to nested handlers) ---------
+#====================[ AD Search Helpers ]====================#
 function Script:Escape-Ldap {
     param([string]$s)
     if ($null -eq $s) { return "" }
@@ -273,7 +297,7 @@ function Script:Build-AdComputerFilter {
     }
 }
 
-# -------------------- Message Center (UI log) --------------------
+#====================[ Message Center (UI log) ]====================#
 function Write-UiLog {
     [CmdletBinding()]
     param(
@@ -298,7 +322,7 @@ function Write-UiLog {
         })
 }
 
-# -------------------- Credentials & Restart --------------------
+#====================[ Credentials & Restart ]====================#
 function Test-AdCredentials {
     param(
         [Parameter(Mandatory)][pscredential]$Credential,
@@ -547,7 +571,7 @@ Function Prompt-Restart {
     }
 }
 
-# -------------------- PC Info (async) --------------------
+#====================[ PC Info (async) ]====================#
 function Update-PCInfo {
     if ($script:PCInfoJob -and ($script:PCInfoJob.State -in 'Completed', 'Failed', 'Stopped')) {
         Receive-Job -Job $script:PCInfoJob -ErrorAction SilentlyContinue | Out-Null
@@ -772,7 +796,7 @@ function Update-PCInfo {
     $script:PCInfoTimer.Start()
 } # <-- closes function Update-PCInfo
 
-# -------------------- AD Operations --------------------
+#====================[ AD Operations ]====================#
 function Join-ComputerWithOU {
     param([string]$DomainName, [string]$OUPath)
     try {
@@ -910,7 +934,7 @@ function Delete-ComputerFromAD {
     }
 }
 
-# -------------------- OU Picker --------------------
+#====================[ OU Picker ]====================#
 function Show-OUWindow {
     [xml]$xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
@@ -1009,7 +1033,7 @@ function Show-FindInADWindow {
         return
     }
 
-    # ---------- helpers ----------
+    #==================[ OU Picker Helpers ]==================#
     if (-not (Get-Command 'Script:Escape-Ldap' -ErrorAction SilentlyContinue)) {
         function Script:Escape-Ldap {
             param([string]$s)
@@ -1087,7 +1111,7 @@ function Show-FindInADWindow {
 
     Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
 
-    # ----------------------------- XAML --------------------------------------
+    #==================[ OUPicker XAML ]==================#
     [xml]$xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
         xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
@@ -1159,7 +1183,7 @@ function Show-FindInADWindow {
 </Window>
 "@
 
-    # ------------------------- window & controls -----------------------------
+    #==================[ Window & Controls ]==================#
     $w          = [Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader $xaml))
     $q          = $w.FindName('q')
     $chkDisabled= $w.FindName('chkDisabled')
@@ -1173,7 +1197,7 @@ function Show-FindInADWindow {
     $results = New-Object System.Collections.ObjectModel.ObservableCollection[object]
     $grid.ItemsSource = $results
 
-    # ---------------------------- search -------------------------------------
+    #==================[ Search ]==================#
     $searchAction = {
         try {
             $results.Clear(); $txtLeft.Clear(); $txtRight.Clear()
@@ -1244,7 +1268,7 @@ function Show-FindInADWindow {
         catch { $lblStatus.Text = "Search failed: $($_.Exception.Message)" }
     }
 
-    # ----------------------------- events ------------------------------------
+    #==================[ Events ]==================#
     $btnSearch.Add_Click($searchAction)
     $q.Add_KeyDown({ if ($_.Key -eq 'Return') { & $searchAction } })
     $btnClear.Add_Click({ $q.Clear(); $results.Clear(); $txtLeft.Clear(); $txtRight.Clear(); $lblStatus.Text='Ready' })
@@ -1285,7 +1309,7 @@ $($sel.Description)
     [void]$w.ShowDialog()
 }
 
-# -------------------- Main GUI --------------------
+#====================[ Main GUI ]====================#
 function Show-MainGUI {
     [xml]$xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
@@ -1653,7 +1677,7 @@ function Show-MainGUI {
     [void]$w.ShowDialog()
 }
 
-# -------------------- Main --------------------
+#====================[ Main ]====================#
 try {
     Test-Admin
     Show-MainGUI

@@ -1,23 +1,55 @@
 ﻿<#
+.TITLE
+    ShadowGroup - Mirror OU users into a shadow Active Directory group
+
 .SYNOPSIS
-    Maintains a shadow group in Active Directory that mirrors users in one or more Organizational Units (OUs).
+    Keeps an AD shadow group in sync with the users of one or more Organizational Units.
 
 .DESCRIPTION
-    This script ensures that all users in the specified OUs are members of a corresponding shadow group.
-    It also removes users from the shadow group if they are no longer in the specified OUs.
-    The script supports multiple OUs and an option to include/exclude child OUs.
-    Additionally, it supports logging and can run in "dry-run" mode for testing purposes.
+    Ensures all users in the specified OUs are members of a corresponding shadow group and
+    removes users who no longer belong. Supports child-OUs inclusion, an enabled-users-only
+    filter, dry-run logging, and a per-run change cap to prevent excessive AD operations.
+    Intended for scheduled runs on a Domain Controller for group-based policies (such as
+    Fine-Grained Password Policies).
+
+.TAGS
+    ActiveDirectory, Group Management, Automation
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Manage group membership in AD (Add-ADGroupMember / Remove-ADGroupMember)
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    1.1.0
+
+.CHANGELOG
+    1.1.0 (2026-09-16)
+    - Standardized help header and script formatting
+
+    1.0.0 (2025-02-02)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .EXAMPLE
     .\ShadowGroup.ps1
-    Runs the script with predefined settings to update the shadow group.
+    Runs the sync with the settings in the Parameters section. Set $Update to $true to apply
+    changes; keep it $false to log planned changes only.
 
 .NOTES
-    Author  : Mohammad Abdelkader
-    Website : momar.tech
-    Date    : 2025-02-02
-    Version : 1.0
+    - Designed to run on a Domain Controller or admin host with the ActiveDirectory module.
+    - The shadow group must exist before running; the script exits if it cannot resolve it.
+    - Log file: C:\ShadowGroups\ShadowGroup.log
+    - Dry-run: set $Update = $false to preview changes without touching AD.
 #>
+
+#Requires -Version 5.1
 
 ###############################################################################
 # PARAMETERS
@@ -30,7 +62,7 @@ $Server = "dc01.example.com"
 $LogFile = "C:\ShadowGroups\ShadowGroup.log"
 
 # Ensure log file exists
-If (!(Test-Path $LogFile)) {
+if (-not (Test-Path $LogFile)) {
     New-Item -ItemType File -Path $LogFile -Force | Out-Null
 }
 
@@ -38,7 +70,7 @@ If (!(Test-Path $LogFile)) {
 $Update = $true
 
 # Include only enabled users (True excludes disabled accounts)
-$EnabledOnly = $True
+$EnabledOnly = $true
 
 # Organizational Units to monitor
 $OUDNs = @("OU=HR,OU=Company,DC=example,DC=com", "OU=IT,OU=Company,DC=example,DC=com")
@@ -57,54 +89,54 @@ $MaxChanges = 4000
 ###############################################################################
 
 # Import Active Directory Module
-Try {
+try {
     Import-Module ActiveDirectory -ErrorAction Stop -WarningAction Stop
-} Catch {
+} catch {
     Write-Host "Active Directory module not found. Script aborted." -ForegroundColor Red
-    Break
+    break
 }
 
 # Verify Domain Controller connectivity
-If (-Not (Test-Connection -ComputerName $Server -Count 1 -Quiet)) {
+if (-not (Test-Connection -ComputerName $Server -Count 1 -Quiet)) {
     Write-Host "Error: Unable to connect to $Server. Script aborted." -ForegroundColor Red
-    Break
+    break
 }
 
 # Ensure valid OUs
-ForEach ($OUDN In $OUDNs) {
-    Try {
+foreach ($OUDN in $OUDNs) {
+    try {
         [ADSI]"LDAP://$OUDN" | Out-Null
-    } Catch {
+    } catch {
         Write-Host "Error: Invalid OU $OUDN. Script aborted." -ForegroundColor Red
-        Break
+        break
     }
 }
 
 # Validate shadow group existence
-Try {
+try {
     [ADSI]"LDAP://$GroupDN" | Out-Null
-} Catch {
+} catch {
     Write-Host "Error: Invalid group $GroupDN. Script aborted." -ForegroundColor Red
-    Break
+    break
 }
 
 # Determine LDAP search scope
-$Scope = If ($ChildOUs) { "SubTree" } Else { "OneLevel" }
+$Scope = if ($ChildOUs) { "SubTree" } else { "OneLevel" }
 
 # Retrieve current group members
-Try {
+try {
     $Members = Get-ADUser -LDAPFilter "(memberOf=$GroupDN)" -Server $Server | Select distinguishedName, Enabled
-} Catch {
+} catch {
     Write-Host "Error: Unable to retrieve group members. Script aborted." -ForegroundColor Red
-    Break
+    break
 }
 
 # Prepare logging
-Try {
+try {
     Add-Content -Path $LogFile -Value "--- Script Execution Start: $(Get-Date) ---"
-} Catch {
+} catch {
     Write-Host "Error: Cannot write to log file. Script aborted." -ForegroundColor Red
-    Break
+    break
 }
 
 # Users to add and remove
@@ -112,12 +144,12 @@ $UsersToAdd = @()
 $UsersToRemove = @()
 
 # Evaluate group membership
-ForEach ($Member In $Members) {
-    If ($EnabledOnly -and -Not $Member.Enabled) {
+foreach ($Member in $Members) {
+    if ($EnabledOnly -and -not $Member.Enabled) {
         $UsersToRemove += $Member.distinguishedName
-    } Else {
+    } else {
         $UserOU = ($Member.distinguishedName -split ",", 2)[1]
-        If ($OUDNs -notcontains $UserOU) {
+        if ($OUDNs -notcontains $UserOU) {
             $UsersToRemove += $Member.distinguishedName
         }
     }
@@ -125,23 +157,23 @@ ForEach ($Member In $Members) {
 
 # Fetch users in OUs not in the group
 $Filter = "(!(memberOf=$GroupDN))"
-If ($EnabledOnly) {
+if ($EnabledOnly) {
     $Filter = "(&" + $Filter + "(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"
 }
 
-ForEach ($OUDN In $OUDNs) {
+foreach ($OUDN in $OUDNs) {
     $UsersInOU = Get-ADUser -SearchBase $OUDN -SearchScope $Scope -LDAPFilter $Filter -Server $Server
-    ForEach ($User in $UsersInOU) {
+    foreach ($User in $UsersInOU) {
         $UsersToAdd += $User.distinguishedName
     }
 }
 
 # Apply changes if enabled
-If ($Update) {
-    If ($UsersToRemove.Count -gt 0) {
+if ($Update) {
+    if ($UsersToRemove.Count -gt 0) {
         Remove-ADGroupMember -Identity $GroupDN -Members $UsersToRemove -Server $Server -Confirm:$False
     }
-    If ($UsersToAdd.Count -gt 0) {
+    if ($UsersToAdd.Count -gt 0) {
         Add-ADGroupMember -Identity $GroupDN -Members $UsersToAdd -Server $Server
     }
 }

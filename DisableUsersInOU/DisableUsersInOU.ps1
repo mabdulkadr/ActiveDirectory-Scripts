@@ -1,32 +1,68 @@
 <#
+.TITLE
+    DisableUsersInOU - Disable all enabled user accounts in a target OU
+
 .SYNOPSIS
-    Disables all user accounts in a specific Active Directory Organizational Unit (OU).
+    Disables every enabled user account in a specified Active Directory Organizational Unit.
 
 .DESCRIPTION
-    This script searches for all enabled user accounts within a given OU and disables them.
-    It logs the actions taken and exports the affected user list to a CSV file for auditing.
+    Searches a configured OU for all enabled user accounts and disables them one by one.
+    Each action is written to a formatted execution log; a colored summary shows the total
+    users found, successfully disabled, and failed. Set $ExportCSV to also emit a CSV report
+    of every attempted action. The operation is irreversible for the affected logins.
+
+.TAGS
+    ActiveDirectory, User Management
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Write access to user objects in the target OU (Disable-ADAccount)
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    1.2.0
+
+.CHANGELOG
+    1.2.0 (2026-09-16)
+    - Standardized help header and script formatting
+
+    1.1.0 (2025-06-25)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .EXAMPLE
-    Run the script directly after setting the correct $OU value inside the script.
+    .\DisableUsersInOU.ps1
+    Disables all enabled users in the OU defined by $OU. Requires the ActiveDirectory
+    module and permissions to disable accounts in that OU.
 
 .NOTES
-    Author  : Mohammad Abdelkader
-    Website : momar.tech
-    Date    : 2025-06-25
-    Version : 1.1
+    - Requires RSAT (ActiveDirectory module) on a domain-joined host.
+    - Configure $OU (and optionally $ExportCSV) in the Configuration section first.
+    - Log file: C:\Logs\DisableUsers_<timestamp>.log
+    - CSV report (when enabled): C:\Reports\DisabledUsers_<timestamp>.csv
+    - Exit code 0 on success; 1 on fatal error.
 #>
 
-# ============================= Configuration =============================
+#Requires -Version 5.1
+
+#====================[ Configuration ]====================#
 
 $OU = "OU=IT,DC=ABC,DC=local"
 $ExportCSV = $true
 
-# ============================= Logging Setup =============================
+#====================[ Logging Setup ]====================#
 
 $LogPath = "C:\Logs"
 if (-not (Test-Path $LogPath)) { New-Item -Path $LogPath -ItemType Directory -Force }
 $LogFile = Join-Path $LogPath "DisableUsers_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').log"
 
+# Writes a timestamped entry to the console and the execution log file.
 function Write-Log {
     param (
         [string]$Message,
@@ -43,7 +79,7 @@ function Write-Log {
     Add-Content -Path $LogFile -Value "[$Level] $(Get-Date -Format 'u') - $Message"
 }
 
-# ============================= Main Execution =============================
+#====================[ Main Execution ]====================#
 
 try {
     Write-Log "Starting user disable process in OU: $OU" -Level "INFO"
@@ -87,7 +123,7 @@ try {
             Write-Log "Exported results to: $CsvFile" -Level "SUCCESS"
         }
 
-        # ============================= Summary Section =============================
+        #====================[ Summary Section ]====================#
         $Total   = $DisabledResults.Count
         $Success = ($DisabledResults | Where-Object { $_.Status -eq 'Disabled' }).Count
         $Failed  = ($DisabledResults | Where-Object { $_.Status -eq 'Failed' }).Count

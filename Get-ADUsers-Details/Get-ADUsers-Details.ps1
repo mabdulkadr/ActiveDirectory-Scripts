@@ -1,25 +1,53 @@
 <#
+.TITLE
+    Get-ADUsers-Details - AD user inventory with activity metrics for an OU
+
 .SYNOPSIS
-    Get full AD user details from a specific OU including group memberships, password settings, and activity data.
+    Exports detailed AD user attributes from an OU, sorted by inactivity, to CSV.
 
 .DESCRIPTION
-    This script retrieves all users in the specified OU from Active Directory with detailed account info:
-    - Display and account info
-    - Password settings and lockout status
-    - Group memberships
-    - OU and last activity info
-    - Sorted by inactivity days
+    Retrieves all users in a configured Organizational Unit and reports display and account
+    info, password settings and lockout status, group memberships, OU location, and last
+    activity. Results are sorted by inactivity (most inactive first), shown in the console,
+    and exported to a timestamped CSV on C:\Reports. The script is read-only.
+
+.TAGS
+    ActiveDirectory, Reporting
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Read access to the target OU (ActiveDirectory module)
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    2.3.0
+
+.CHANGELOG
+    2.3.0 (2026-09-16)
+    - Standardized help header and section formatting
+
+    2.2.0 (2025-06-25)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .EXAMPLE
     .\Get-ADUsers-Details.ps1
+    Inventories all users in the OU defined by $OU and writes the CSV report to C:\Reports.
 
 .NOTES
-    Author  : Mohammad Abdelkader
-    Website : momar.tech
-    Date    : 2025-06-25
-    Version : 2.2
+    - Requires RSAT (ActiveDirectory module) and read access to the target OU.
+    - Configure the $OU variable in the Configuration section before running.
+    - Output: C:\Reports\ADUsers-Details_<timestamp>.csv
+    - Read-only: no directory objects are modified.
 #>
 
+#Requires -Version 5.1
 
 #====================[ Configuration ]====================#
 $OU = "OU=Employees,DC=abc,DC=local"
@@ -39,6 +67,7 @@ Import-Module ActiveDirectory
 #====================[ Collect Users ]====================#
 $Users = Get-ADUser -SearchBase $OU -Filter * -Properties DisplayName, LastLogonDate, Enabled, SamAccountName, whenCreated, whenChanged, PasswordLastSet, MemberOf, PasswordNeverExpires, LockedOut, CannotChangePassword, UserPrincipalName, Title, Department
 
+# Builds one result object per user with enriched account details.
 $Results = foreach ($User in $Users) {
     # Get OU from DN
     $UserOU = ($User.DistinguishedName -split ",(?=OU=)")[1..99] -join ","
@@ -75,6 +104,7 @@ $Results = foreach ($User in $Users) {
 }
 
 #====================[ Console Output ]====================#
+# Show users sorted by inactivity, most inactive first.
 $Results | Sort-Object DaysInactive -Descending | Format-Table -AutoSize
 
 #====================[ Export to CSV ]====================#

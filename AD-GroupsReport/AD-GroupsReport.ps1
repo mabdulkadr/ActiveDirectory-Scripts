@@ -1,19 +1,57 @@
 ﻿<#
+.TITLE
+    AD-GroupsReport - Full AD group inventory with nesting and member statistics
+
 .SYNOPSIS
-    Export a single detailed report of all AD groups with nested info and member stats.
+    Exports a detailed CSV report of all AD groups with nested info and member stats.
 
 .DESCRIPTION
-    Retrieves complete group details including name, DN, timestamps, email, 
-    member type counts, nested group names and metadata, and exports all into one CSV.
-    Logs to a single log file.
+    Retrieves complete group details for every group in the domain — name, DN, timestamps,
+    email, member-type counts (User / Group / Contact), nested group names and metadata, and
+    inactivity flags — and exports everything into one timestamped CSV file. Also writes a
+    matching execution log. If the ActiveDirectory module is missing, the script attempts a
+    self-install of the RSAT tools before failing cleanly.
+
+.TAGS
+    ActiveDirectory, Reporting
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Read access to groups and members (ActiveDirectory module)
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    1.1.0
+
+.CHANGELOG
+    1.1.0 (2026-09-16)
+    - Standardized help header and section formatting
+
+    1.0.0 (2025-06-19)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
+
+.EXAMPLE
+    .\AD-GroupsReport.ps1
+    Exports the full group inventory to C:\ADGroupsReport\ADGroupsReport_<timestamp>.csv.
 
 .NOTES
-    Author: Mohammed Omar
-    Date  : 2025-06-19
+    - Requires RSAT (ActiveDirectory module); the script attempts to install it when missing.
+    - Output folder: C:\ADGroupsReport (created on first run).
+    - Run from an elevated PowerShell session for the optional module install.
+    - Read-only: queries groups and members but never modifies objects.
+    - Exit code 0 on completion; 1 on module install/import failure.
 #>
 
+#Requires -Version 5.1
 
-# ========================= Ensure ActiveDirectory Module is Installed and Imported =========================
+#====================[ Module Check ]====================#
 
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
     Write-Host "⚠️ 'ActiveDirectory' module not found. Attempting to install RSAT tools..." -ForegroundColor Yellow
@@ -36,20 +74,21 @@ try {
     exit 1
 }
 
-# ========================= Configuration =========================
+#====================[ Configuration ]====================#
 
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $BasePath  = "C:\ADGroupsReport"
 $LogFile   = "$BasePath\ADGroupsExport_$Timestamp.log"
 $CsvOutput = "$BasePath\ADGroupsReport_$Timestamp.csv"
 
-if (!(Test-Path $BasePath)) {
+if (-not (Test-Path $BasePath)) {
     New-Item -Path $BasePath -ItemType Directory -Force | Out-Null
     Write-Host "📁 Created output directory: $BasePath" -ForegroundColor Cyan
 }
 
-# ========================= Logging Function =========================
+#====================[ Logging Function ]====================#
 
+# Writes a timestamped entry to the console and the execution log file.
 function Write-Log {
     param (
         [string]$Message,
@@ -72,7 +111,7 @@ function Write-Log {
 
 Write-Log "🔄 Starting unified Active Directory group export..." -Level "INFO"
 
-# ========================= Main Logic =========================
+#====================[ Main Logic ]====================#
 
 $GroupReport = @()
 
@@ -148,7 +187,7 @@ foreach ($Group in $Groups) {
     }
 }
 
-# ========================= Export CSV =========================
+#====================[ Export CSV ]====================#
 try {
     $GroupReport | Export-Csv -Path $CsvOutput -NoTypeInformation -Encoding UTF8
     Write-Log "📁 Exported unified group report to: $CsvOutput" -Level "SUCCESS"

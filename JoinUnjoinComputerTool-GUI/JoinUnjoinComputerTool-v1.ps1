@@ -1,60 +1,74 @@
 <#
+.TITLE
+    JoinUnjoinComputerTool - WPF GUI for domain/Entra/Intune computer management (v1)
+
 .SYNOPSIS
-    A PowerShell GUI tool for managing computer objects in Active Directory, Entra ID, and Intune.
+    GUI tool to join/disjoin computers in AD, Entra ID, and Intune with real-time PC info.
 
 .DESCRIPTION
-    This script provides a GUI-based tool that allows administrators to manage computer objects in 
-    Active Directory, Entra ID (Azure AD), and Intune. The tool provides functionality to:
-    
-    - Join and disjoin computers from Active Directory domains, with support for selecting an Organizational Unit (OU).
-    - Delete inactive or unwanted computer accounts from Active Directory.
-    - Retrieve and display real-time system information such as:
-        - Computer Name
-        - IP Address
-        - Domain Join Status
-        - Entra ID Join Status (Hybrid or Azure AD Joined)
-        - SCCM Agent Installation and Status
-        - Co-Management (SCCM + Intune) Status
-    - Join or disjoin the computer from Entra ID (Azure AD).
-    - Enroll the computer into Intune as a personal device.
-    - Provide a user-friendly interface with WPF-based GUI elements, color-coded status indicators, and real-time updates.
+    Provides a WPF GUI to manage computer objects in Active Directory, Entra ID (Azure AD),
+    and Intune:
+      - Join/disjoin computers in AD with Organizational Unit (OU) selection
+      - Delete inactive or unwanted computer accounts from AD
+      - Live system info: Computer Name, IP, Domain Join Status, Entra ID Join Status
+        (Hybrid/Azure AD Joined), SCCM Agent status, Co-Management (SCCM + Intune) status
+      - Join or disjoin the computer from Entra ID (used with dsregcmd)
+      - Enroll the computer into Intune as a personal device
+      - Color-coded WPF status indicators and real-time updates
 
-.PARAMETERS
-    DefaultDomainController  - The default domain controller to query Active Directory.
-    DefaultDomainName        - The default domain name used for domain joins.
-    DefaultSearchBase        - The default Active Directory Organizational Unit (OU) path.
+.PARAMETER DefaultDomainController
+    Default domain controller to query Active Directory.
 
-.FUNCTIONALITY
-    - `Update-PCInfo`: Spawns a background job to gather system details, then updates the GUI via a DispatcherTimer.
-    - `Join-ComputerWithOU`: Joins a computer to Active Directory with an assigned OU.
-    - `Disjoin-ComputerFromDomain`: Removes a computer from Active Directory and places it in a workgroup.
-    - `Delete-ComputerFromAD`: Deletes a computer account from Active Directory if it is inactive.
-    - `Join-EntraID`: Uses `dsregcmd /join` to register the device with Entra ID.
-    - `Disjoin-EntraID`: Uses `dsregcmd /leave` to unregister the device from Entra ID.
-    - `Join-IntuneAsPersonalDevice`: Launches the Intune enrollment page for personal device enrollment.
-    - `Show-OUWindow`: Displays an OU selection window for Active Directory join operations.
-    - `Prompt-Credentials`: Prompts the user for Active Directory credentials when necessary.
-    - `Prompt-Restart`: Prompts and initiates a system restart if required.
-    - `Show-WPFMessage`: Displays formatted WPF-based message dialogs.
+.PARAMETER DefaultDomainName
+    Default domain name used for domain joins.
 
-.REQUIREMENTS
-    - Windows 10/11 or Windows Server with PowerShell 5.1+.
-    - Administrative privileges to modify domain memberships.
-    - SCCM (Configuration Manager) agent installed for co-management detection.
-    - Active Directory module installed for domain operations.
+.PARAMETER DefaultSearchBase
+    Default Active Directory Organizational Unit (OU) path for joins.
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    2.1.0
+
+.CHANGELOG
+    2.1.0 (2026-09-16)
+    - Standardized help header and section formatting
+
+    2.0.0 (2025-01-20)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .EXAMPLE
-    # Run the script with default domain settings
-    .\JoinUnjoinComputerTool.ps1
+    .\JoinUnjoinComputerTool-v1.ps1
+    Launches the tool with default domain settings.
 
-    # Run the script specifying a different domain controller
-    .\JoinUnjoinComputerTool.ps1 -DefaultDomainController "DC02.company.local"
+.EXAMPLE
+    .\JoinUnjoinComputerTool-v1.ps1 -DefaultDomainController "DC02.company.local"
+    Launches the tool against a specific domain controller.
 
 .NOTES
-    Author  : Mohammad Abdulkader Omar
-    Website : https://momar.tech
-    Date    : 2025-01-20
-    Version : 2.0
+    Requires: Windows 10/11 or Windows Server with PowerShell 5.1+.
+    Administrative privileges are required to modify domain memberships.
+    SCCM agent needed for co-management detection; AD module for domain operations.
+    GUI only: no exit code contract.
+
+    Key functions:
+      - Update-PCInfo              Spawns a background job to gather system details, updates the GUI via a DispatcherTimer.
+      - Join-ComputerWithOU        Joins a computer to AD with an assigned OU.
+      - Disjoin-ComputerFromDomain Removes a computer from AD and places it in a workgroup.
+      - Delete-ComputerFromAD      Deletes a computer account from AD if it is inactive.
+      - Join-EntraID / -Disjoin    Register/unregister the device with Entra ID via dsregcmd.
+      - Join-IntuneAsPersonalDevice Launches Intune enrollment for a personal device.
+      - Show-OUWindow              OU selection window for AD join operations.
+      - Prompt-Credentials         Prompts for AD credentials when necessary.
+      - Prompt-Restart             Prompts and initiates a system restart if required.
+      - Show-WPFMessage            Formatted WPF message dialogs.
+
+.TAGS
+    ActiveDirectory, WPF GUI, Entra ID, Intune, SCCM, Domain Join
 #>
 
 ###############################################################################

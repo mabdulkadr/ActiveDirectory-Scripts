@@ -1,32 +1,61 @@
 ﻿<#
+.TITLE
+    ActiveDirectoryReports - Menu-driven AD HTML reporting suite
+
 .SYNOPSIS
-    Responsive Active Directory Reports Script with Enhanced Console Menu & Modern HTML Output
+    Generates responsive HTML reports for AD computers, DCs, workstations, servers, and accounts.
 
 .DESCRIPTION
-    Combines six essential AD reporting scripts into one menu-driven tool. 
-    Each report outputs a modern, responsive HTML file, ready for browser viewing.
-    Features:
-      - Centralized CSS for consistent, professional look
-      - Responsive, mobile-friendly table design
-      - Timestamped reports saved to C:\ADReports
-      - Console menu for easy use (works in PowerShell ISE and classic console)
-      - Error handling and user prompts
+    Combines six essential AD reporting scripts into one menu-driven tool. Each report outputs
+    a modern, responsive HTML file ready for browser viewing. Features a centralized CSS for a
+    consistent professional look, timestamped reports saved to C:\ADReports, and a console menu
+    that works in PowerShell ISE and classic console. The tool is read-only and only queries AD.
+
+.TAGS
+    ActiveDirectory, Reporting
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Read access to computer and DC objects (ActiveDirectory module)
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    1.1.0
+
+.CHANGELOG
+    1.1.0 (2026-09-16)
+    - Standardized help header and section formatting
+
+    1.0.0 (2025-06-16)
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
+
+.EXAMPLE
+    .\ActiveDirectoryReports.ps1
+    Displays the interactive console menu. Choose a report number (1-7) to generate one
+    report or all reports, then optionally open the result in the browser.
 
 .NOTES
-    Author: Combined and Enhanced by ChatGPT (2025-06-16)
-    Original scripts by: Mohammed Omar
-
-.REQUIREMENTS
-    - Run as Administrator
-    - ActiveDirectory PowerShell module (part of RSAT)
+    - Run as Administrator for best results.
+    - Requires RSAT (ActiveDirectory module) and read access to AD.
+    - Reports are saved to C:\ADReports with timestamps so multiple runs are preserved.
+    - Read-only: never modifies Active Directory objects.
 #>
 
-# ========================= GLOBAL SETTINGS =========================
+#Requires -Version 5.1
+
+#====================[ Global Settings ]====================#
 
 # Output directory for all reports
 $ReportPath = "C:\ADReports"
 
-if (!(Test-Path $ReportPath)) {
+if (-not (Test-Path $ReportPath)) {
     New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null
     Write-Host "📁 Created output directory: $ReportPath" -ForegroundColor Cyan
 }
@@ -102,7 +131,7 @@ try {
 }
 If (-not (Test-Path $ReportPath)) { New-Item -Path $ReportPath -ItemType Directory | Out-Null }
 
-# ========================= UTILITY FUNCTIONS =========================
+#====================[ Utility Functions ]====================#
 
 # Writes a fancy, colored menu header.
 function Write-Header($text) {
@@ -152,7 +181,7 @@ function Wait-AnyKey {
     Read-Host "Press ENTER to continue"
 }
 
-# =========================REPORT FUNCTIONS =========================
+#====================[ Report Functions ]====================#
 
 # Generates a complete report of all AD computer objects.
 function Show-CompleteComputerObjectReport {
@@ -274,7 +303,7 @@ function Run-AllReports {
     Write-Host "`nAll reports have been generated." -ForegroundColor Green
 }
 
-# ========================= MAIN MENU =========================
+#====================[ Main Menu ]====================#
 
 # Displays the main menu and handles user input.
 function Show-Menu {
@@ -294,7 +323,7 @@ function Show-Menu {
     Write-Host ""
 }
 
-# ========================= MAIN EXECUTION LOOP =========================
+#====================[ Main Execution Loop ]====================#
 
 do {
     Show-Menu

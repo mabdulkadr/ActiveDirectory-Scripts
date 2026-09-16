@@ -1,13 +1,14 @@
 <#
-.SYNOPSIS
-    Get-ADHealth.ps1 — Domain Controller Health Check (card-style HTML + email)
+.TITLE
+    Get-ADHealth - Domain Controller Health Check (card-style HTML + email)
 
-.DESCRIPTION
+.SYNOPSIS
     Performs a comprehensive health check of all domain controllers in a specified domain
     or across the entire Active Directory forest, then outputs a modern, responsive
     HTML report composed of per-DC "cards" grouped by Domain → Site, with badges,
     progress bars, and a built-in explainer for each check.
 
+.DESCRIPTION
     Collectors (per DC):
       - DNS resolution (Resolve-DnsName)
       - ICMP reachability (Test-Connection)
@@ -20,6 +21,31 @@
     Output:
       - Card-based HTML (responsive, easy to read)
       - Optional email (inline + attachment)
+
+.TAGS
+    ActiveDirectory, Monitoring, Reporting
+
+.PLATFORM
+    Windows
+
+.PERMISSIONS
+    Read access to domain controller objects; DCDIAG and WMI queries on each DC
+
+.AUTHOR
+    Mohammad Abdelkader Omar
+
+.VERSION
+    1.1.0
+
+.CHANGELOG
+    1.1.0 (2026-09-16)
+    - Standardized help header and script formatting
+
+    1.0.0
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .PARAMETER DomainName
     One or more domain DNS names to scope the check. If omitted, scans all domains in the forest.
@@ -51,12 +77,26 @@
 .PARAMETER Password
     SecureString password. If provided (and -Credential not provided), it will be combined with -UserFrom.
 
+.EXAMPLE
+    .\Get-ADHealth.ps1
+    Runs the health check against every DC in the forest and saves the HTML report to C:\Reports.
+
+.EXAMPLE
+    .\Get-ADHealth.ps1 -DomainName "corp.contoso.com" -SendEmail -UserTo "it-admins@contoso.com"
+    Runs the check for one domain and emails the report.
+
 .LINK
     Resolve-DnsName (Microsoft Docs): https://learn.microsoft.com/powershell/module/dnsclient/resolve-dnsname
     DCDIAG reference:                 https://learn.microsoft.com/windows-server/administration/windows-commands/dcdiag
     Windows Time (W32Time):           https://learn.microsoft.com/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings
     Win32_OperatingSystem:            https://learn.microsoft.com/windows/win32/cimwin32prov/win32-operatingsystem
     Win32_LogicalDisk:                https://learn.microsoft.com/windows/win32/cimwin32prov/win32-logicaldisk
+
+.NOTES
+    - Requires RSAT (ActiveDirectory module) and DCDIAG in PATH for full test coverage.
+    - Replace "<REPLACE_WITH_SMTP_PASSWORD>" below if you plan to use -SendEmail.
+    - Exported HTML report: C:\Reports\ADHealth_<timestamp>.html
+    - Exit code 0 on completion; 1 when the AD module is unavailable.
 #>
 
 [CmdletBinding()]
@@ -117,9 +157,9 @@ $Thresholds = @{
     TimeFailSeconds  = 1.0
 }
 
-# ---- Severity policy for overall card state ----
-# Anything in $CriticalBinaryProps that fails ⇒ Critical immediately.
-# Anything in $WarningBinaryProps that fails (and no criticals) ⇒ Warning.
+#==================[ Severity Policy ]==================#
+# Anything in $DCDiagCritical that fails ⇒ Critical immediately.
+# Anything in $DCDiagWarning that fails (and no criticals) ⇒ Warning.
 $DCDiagCritical = @(
   'DCDIAG: Connectivity',
   'DCDIAG: SysVolCheck',

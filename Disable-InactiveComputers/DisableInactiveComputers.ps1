@@ -1,51 +1,62 @@
 <#
+.TITLE
+    DisableInactiveComputers - Disable or delete stale computer accounts with HTML audit
+
+.SYNOPSIS
+    Finds inactive computer accounts in an OU by last logon and optionally disables or deletes them.
+
 .DESCRIPTION
-    This PowerShell script is designed to manage computers in an Active Directory (AD) environment based on their inactivity.
-    It identifies computers that have been inactive (i.e., those that haven't logged on for a specified number of days),
-    and provides options to disable or delete these computers.
+    Searches a configurable Organizational Unit for computer accounts that have not logged
+    on within a threshold number of days, lists them in the console, prompts whether to disable
+    them, then prompts whether to delete the disabled accounts. Every run produces a timestamped
+    HTML report with color-coded tables for inactive, disabled, and deleted computers. Write actions
+    are confirmed interactively and can be safety-skipped.
 
-    After performing the operations, it generates a combined HTML report containing:
-    - List of inactive computers
-    - List of disabled computers (if applicable)
-    - List of deleted computers (if applicable)
+.TAGS
+    ActiveDirectory, Computer Management, Cleanup
 
-    The HTML report is styled with CSS and saved with a timestamp in the filename for uniqueness.
+.PLATFORM
+    Windows
 
-.PARAMETERS
-    -DaysInactive: [int] The number of days used to define computer inactivity. Any computer that hasn't logged on for more than this many days will be considered inactive.
-    -SearchBaseOU: [string] The Organizational Unit (OU) within AD to search for computers. The script searches for computers within this specified OU.
+.PERMISSIONS
+    Full control over computer objects in the target OU (disable + delete)
 
-.STEPS
-    1. Search Active Directory for computers within the specified Organizational Unit (OU).
-    2. Filter the computers based on their last logon date. Computers that haven't logged on within the specified number of days are considered inactive.
-    3. Prompt the user to disable these inactive computers.
-    4. Prompt the user to delete the computers that were disabled.
-    5. Generate an HTML report with the following sections:
-        - Inactive Computers
-        - Disabled Computers (if applicable)
-        - Deleted Computers (if applicable)
-    6. Save the HTML report with a timestamp to avoid overwriting previous reports.
+.AUTHOR
+    Mohammad Abdelkader Omar
 
-.OUTPUT
-    - HTML report summarizing the inactive, disabled, and deleted computers.
-    - Console output for the list of inactive computers and actions performed (disabling and deletion).
+.VERSION
+    1.1.0
 
-.NOTES
-    - The script requires sufficient permissions to query Active Directory, disable AD accounts, and delete AD computer objects.
-    - It is recommended to test the script in a non-production environment before running it in production.
+.CHANGELOG
+    1.1.0 (2026-09-16)
+    - Standardized help header and script formatting
+
+    1.0.0
+    - Initial release
+
+.LASTUPDATE
+    2026-09-16
 
 .EXAMPLE
-    # Run the script to process computers in the specified OU and consider any computer inactive if it hasn't logged on in the last 180 days.
     .\DisableInactiveComputers.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=ABC,DC=local"
+    Flags any computer that has not logged on for more than 180 days and offers to disable
+    and then delete those accounts, writing a timestamped audit report to C:\.
+
+.NOTES
+    - Requires RSAT (ActiveDirectory module) and permissions to disable/delete computer objects.
+    - HTML report: C:\Computers_Report_<timestamp>.html
+    - Optional action log: C:\InactiveComputers.log (used by the Log-Message helper).
+    - Test against a staging OU before running in production; deletion is irreversible.
 #>
+
+#Requires -Version 5.1
 
 param (
     [int]$DaysInactive     = 180,                                            # Number of days of inactivity for filtering inactive computers
     [string]$SearchBaseOU  = "OU=Domain Computers,DC=ABC,DC=local"           # Organizational Unit (OU) for searching computers
 )
 
-# Function to log messages (optional)
-# This can be used for auditing purposes, logging important script actions.
+# Writes a timestamped line to the optional action log file.
 function Log-Message {
     param (
         [string]$Message,      # The message to log
@@ -56,8 +67,7 @@ function Log-Message {
     Add-Content -Path $LogPath -Value $logEntry
 }
 
-# Function to generate a combined HTML report
-# This function creates a formatted HTML report that combines inactive, disabled, and deleted computers in one report.
+# Builds a single timestamped HTML report combining inactive, disabled, and deleted tables.
 function Write-CombinedHTMLReport {
     param (
         [string]$HtmlPath,        # Path to save the final HTML report
@@ -203,6 +213,8 @@ function Write-CombinedHTMLReport {
     Set-Content -Path $HtmlPath -Value $fullHtml
 }
 
+#===============[ Main Execution ]===============#
+
 # Generate a timestamp for the report filename
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $reportFileName = "C:\Computers_Report_$timestamp.html"
@@ -214,9 +226,9 @@ Write-Host "Processing inactive computers based on LastLogonDate and $DaysInacti
 $InactiveThreshold = (Get-Date).AddDays(-$DaysInactive)
 
 # Fetch all computers from the specified Organizational Unit (OU)
-Try {
+try {
     $AllComputers = Get-ADComputer -Filter * -SearchBase $SearchBaseOU -Property Name, LastLogonDate -ErrorAction Stop
-} Catch {
+} catch {
     Write-Error "Failed to retrieve computers from the specified OU: $_"
     Exit
 }
@@ -250,14 +262,14 @@ if ($InactiveComputers.Count -gt 0) {
     if ($DisableInput -eq "Yes") {
         # Loop through inactive computers and disable them
         foreach ($Computer in $InactiveComputers) {
-            Try {
+            try {
                 Write-Host "Disabling computer: $($Computer.ComputerName)" -ForegroundColor Yellow
                 Disable-ADAccount -Identity $Computer.DistinguishedName -ErrorAction Stop
                 Write-Host "Disabled: $($Computer.ComputerName)" -ForegroundColor Green
                 
                 # Add the computer to the DisabledComputers array
                 $DisabledComputers += $Computer
-            } Catch {
+            } catch {
                 Write-Error "Failed to disable computer $($Computer.ComputerName): $_"
             }
         }
@@ -271,14 +283,14 @@ if ($InactiveComputers.Count -gt 0) {
     if ($DeleteInput -eq "Yes" -and $DisabledComputers.Count -gt 0) {
         # Loop through disabled computers and delete them
         foreach ($Computer in $DisabledComputers) {
-            Try {
+            try {
                 Write-Host "Deleting computer: $($Computer.ComputerName)" -ForegroundColor Red
                 Remove-ADComputer -Identity $Computer.DistinguishedName -Confirm:$false -ErrorAction Stop
                 Write-Host "Deleted: $($Computer.ComputerName)" -ForegroundColor Green
 
                 # Add the computer to the DeletedComputers array
                 $DeletedComputers += $Computer
-            } Catch {
+            } catch {
                 Write-Error "Failed to delete computer $($Computer.ComputerName): $_"
             }
         }
