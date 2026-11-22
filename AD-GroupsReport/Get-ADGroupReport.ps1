@@ -1,6 +1,6 @@
 ﻿<#
 .TITLE
-    AD-GroupsReport - Full AD group inventory with nesting and member statistics
+    Get-ADGroupReport - Full AD group inventory with nesting and member statistics
 
 .SYNOPSIS
     Exports a detailed CSV report of all AD groups with nested info and member stats.
@@ -43,7 +43,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\AD-GroupsReport.ps1
+    .\Get-ADGroupReport.ps1
     Exports the full group inventory to <script-folder>\Reports\ADGroupsReport_<timestamp>.csv.
 
 .NOTES

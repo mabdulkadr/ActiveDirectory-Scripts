@@ -41,7 +41,7 @@ If the ActiveDirectory module is missing, the script tries to install the RSAT t
 ```text
 AD-GroupsReport
 │
-├── AD-GroupsReport.ps1
+├── Get-ADGroupReport.ps1
 └── README.md
 ```
 
@@ -51,7 +51,7 @@ AD-GroupsReport
 
 ### Basic Usage
 ```powershell
-.\AD-GroupsReport.ps1
+.\Get-ADGroupReport.ps1
 ```
 
 ### Self-Installed RSAT Warning
@@ -133,6 +133,6 @@ This skill and every script it generates are provided as-is with no warranty of 
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
 
-Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin)
 
 </div>

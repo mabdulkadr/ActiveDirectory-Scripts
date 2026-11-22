@@ -42,7 +42,7 @@ Run it first in log-only mode to preview changes, then enable modifications and 
 ```text
 Shadow-Group
 │
-├── ShadowGroup.ps1
+├── Sync-ShadowGroup.ps1
 └── README.md
 ```
 
@@ -52,19 +52,19 @@ Shadow-Group
 
 ### Test Run (No Changes Applied)
 ```powershell
-.\ShadowGroup.ps1
+.\Sync-ShadowGroup.ps1
 ```
 
 ### Apply Changes
 ```powershell
 # 1. Set $Update = $true inside the script
 # 2. Then run:
-.\ShadowGroup.ps1
+.\Sync-ShadowGroup.ps1
 ```
 
 ### Schedule on a Domain Controller
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File "C:\Path\To\ShadowGroup.ps1"
+powershell.exe -ExecutionPolicy Bypass -File "C:\Path\To\Sync-ShadowGroup.ps1"
 ```
 
 ---
@@ -149,6 +149,6 @@ This skill and every script it generates are provided as-is with no warranty of 
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
 
-Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin)
 
 </div>

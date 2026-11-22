@@ -1,6 +1,6 @@
 <#
 .TITLE
-    DisableInactiveComputers - Disable or delete stale computer accounts with HTML audit
+    Disable-ADInactiveComputer - Disable or delete stale computer accounts with HTML audit
 
 .SYNOPSIS
     Finds inactive computer accounts in an OU by last logon and optionally disables or deletes them.
@@ -42,7 +42,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\DisableInactiveComputers.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=ABC,DC=local"
+    .\Disable-ADInactiveComputer.ps1 -DaysInactive 180 -SearchBaseOU "OU=Domain Computers,DC=ABC,DC=local"
     Flags any computer that has not logged on for more than 180 days and offers to disable
     and then delete those accounts, writing a timestamped audit report to
     <script-folder>\Reports\Computers_Report_<timestamp>.html.

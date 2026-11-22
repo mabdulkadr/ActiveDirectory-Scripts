@@ -1,6 +1,6 @@
 <#
 .TITLE
-    DisableUsersInOU - Disable all enabled user accounts in a target OU
+    Disable-ADUserInOU - Disable all enabled user accounts in a target OU
 
 .SYNOPSIS
     Disables every enabled user account in a specified Active Directory Organizational Unit.
@@ -41,7 +41,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\DisableUsersInOU.ps1
+    .\Disable-ADUserInOU.ps1
     Disables all enabled users in the OU defined by $OU. Requires the ActiveDirectory
     module and permissions to disable accounts in that OU.
 

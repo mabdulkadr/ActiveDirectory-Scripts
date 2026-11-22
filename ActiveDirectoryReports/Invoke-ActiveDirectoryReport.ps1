@@ -1,6 +1,6 @@
 ﻿<#
 .TITLE
-    ActiveDirectoryReports - Menu-driven AD HTML reporting suite
+    Invoke-ActiveDirectoryReport - Menu-driven AD HTML reporting suite
 
 .SYNOPSIS
     Generates responsive HTML reports for AD computers, DCs, workstations, servers, and accounts.
@@ -42,7 +42,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\ActiveDirectoryReports.ps1
+    .\Invoke-ActiveDirectoryReport.ps1
     Displays the interactive console menu. Choose a report number (1-7) to generate one
     report or all reports, then optionally open the result in the browser.
 

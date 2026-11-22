@@ -1,6 +1,6 @@
 <#
 .TITLE
-    Get-ADUsers-Details - AD user inventory with activity metrics for an OU
+    Get-ADUserDetails - AD user inventory with activity metrics for an OU
 
 .SYNOPSIS
     Exports detailed AD user attributes from an OU, sorted by inactivity, to CSV.
@@ -41,7 +41,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\Get-ADUsers-Details.ps1
+    .\Get-ADUserDetails.ps1
     Inventories all users in the OU defined by $OU and writes the CSV report to
     <script-folder>\Reports\ADUsers-Details_<timestamp>.csv.
 

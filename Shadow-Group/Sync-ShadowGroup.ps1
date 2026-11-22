@@ -1,6 +1,6 @@
 ﻿<#
 .TITLE
-    ShadowGroup - Mirror OU users into a shadow Active Directory group
+    Sync-ShadowGroup - Mirror OU users into a shadow Active Directory group
 
 .SYNOPSIS
     Keeps an AD shadow group in sync with the users of one or more Organizational Units.
@@ -42,7 +42,7 @@
     2026-09-16
 
 .EXAMPLE
-    .\ShadowGroup.ps1
+    .\Sync-ShadowGroup.ps1
     Runs the sync with the settings in the Parameters section. Set $Update to $true to apply
     changes; keep it $false to log planned changes only.
 

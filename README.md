@@ -61,24 +61,24 @@ For IT operations and helpdesk teams that manage users, computers, groups, and D
 ActiveDirectory-Scripts
 │
 ├── ActiveDirectoryReports\
-│   └── ActiveDirectoryReports.ps1
+│   └── Invoke-ActiveDirectoryReport.ps1
 ├── AD-GroupsReport\
-│   └── AD-GroupsReport.ps1
+│   └── Get-ADGroupReport.ps1
 ├── Add-UsersFromCSVToADGroup\
 │   └── Add-UsersFromCSVToADGroup.ps1
 ├── Disable-InactiveComputers\
-│   └── DisableInactiveComputers.ps1
+│   └── Disable-ADInactiveComputer.ps1
 ├── DisableUsersInOU\
-│   └── DisableUsersInOU.ps1
+│   └── Disable-ADUserInOU.ps1
 ├── Get-ADHealth\
 │   └── Get-ADHealth.ps1
 ├── Get-ADUsers-Details\
-│   └── Get-ADUsers-Details.ps1
+│   └── Get-ADUserDetails.ps1
 ├── JoinUnjoinComputerTool-GUI\
 │   ├── JoinUnjoinComputerTool-v1.ps1
 │   └── JoinUnjoinComputerTool-v2.ps1
 ├── Shadow-Group\
-│   └── ShadowGroup.ps1
+│   └── Sync-ShadowGroup.ps1
 └── README.md
 ```
 
@@ -104,7 +104,7 @@ Comprehensive Domain Controller health check with HTML report and optional SMTP 
 
 **File**
 ```powershell
-ActiveDirectoryReports\ActiveDirectoryReports.ps1
+ActiveDirectoryReports\Invoke-ActiveDirectoryReport.ps1
 ```
 
 Menu-driven HTML inventory for AD computers, Domain Controllers, workstations, servers, account status, and OS grouping.
@@ -118,7 +118,7 @@ Menu-driven HTML inventory for AD computers, Domain Controllers, workstations, s
 
 **File**
 ```powershell
-AD-GroupsReport\AD-GroupsReport.ps1
+AD-GroupsReport\Get-ADGroupReport.ps1
 ```
 
 Full domain group inventory with membership, nesting, and inactivity analysis.
@@ -132,7 +132,7 @@ Full domain group inventory with membership, nesting, and inactivity analysis.
 
 **File**
 ```powershell
-Get-ADUsers-Details\Get-ADUsers-Details.ps1
+Get-ADUsers-Details\Get-ADUserDetails.ps1
 ```
 
 OU-scoped user inventory with account attributes and inactivity metrics.
@@ -146,7 +146,7 @@ OU-scoped user inventory with account attributes and inactivity metrics.
 
 **File**
 ```powershell
-DisableUsersInOU\DisableUsersInOU.ps1
+DisableUsersInOU\Disable-ADUserInOU.ps1
 ```
 
 Bulk disables every enabled user account in a target OU.
@@ -160,7 +160,7 @@ Bulk disables every enabled user account in a target OU.
 
 **File**
 ```powershell
-Disable-InactiveComputers\DisableInactiveComputers.ps1
+Disable-InactiveComputers\Disable-ADInactiveComputer.ps1
 ```
 
 Finds stale computer accounts and optionally disables or deletes them.
@@ -188,7 +188,7 @@ Bulk-adds users to an AD group from a CSV file, skipping existing members.
 
 **File**
 ```powershell
-Shadow-Group\ShadowGroup.ps1
+Shadow-Group\Sync-ShadowGroup.ps1
 ```
 
 Synchronizes a group with the users of one or more OUs, with dry-run mode and a change cap.
@@ -262,6 +262,6 @@ This skill and every script it generates are provided as-is with no warranty of 
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/mabdulkadrx)
 
-Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin-skill)
+Built with [**PowerShell Enterprise Admin**](https://github.com/mabdulkadr/powershell-enterprise-admin)
 
 </div>
