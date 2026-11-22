@@ -20,17 +20,17 @@ For Administrators who need to clean up old computer objects in Active Directory
 
 # 📖 Overview
 
-**Disable Inactive Computers** scans a configurable Organizational Unit, finds computer accounts that have not logged on within a set number of days, and optionally disables and then deletes them. Every run produces a timestamped HTML report with three color-coded tables — **Inactive**, **Disabled**, and **Deleted** — plus color-coded console output for immediate review.
+**Disable Inactive Computers** scans a configurable Organizational Unit, finds computer accounts that have not logged on within a set number of days, and optionally disables and then deletes them. Every run produces a timestamped HTML report with three color-coded tables (**Inactive**, **Disabled**, and **Deleted**) and color-coded console output for immediate review.
 
 ---
 
 # ✨ Features
 
-* **OU-scoped scan** — searches only the Organizational Unit you specify
-* **Configurable threshold** — inactivity window set in days (`DaysInactive`)
-* **Two-phase cleanup** — first prompt disables stale computers, second prompt deletes them
-* **HTML audit report** — three color-coded tables with counts and timestamps
-* **Console + log output** — color-coded actions and optional file logging
+* Searches only the Organizational Unit you specify
+* Sets the inactivity window in days with `DaysInactive`
+* Uses two prompts: the first disables stale computers, the second deletes them
+* Writes three color-coded HTML tables with counts and timestamps
+* Logs color-coded actions to the console and, optionally, to a file
 
 ---
 
@@ -98,7 +98,7 @@ The PowerShell cmdlets that drive the cleanup workflow.
 * The HTML report is saved to `C:\Computers_Report_yyyy-MM-dd_HH-mm-ss.html` with tables for inactive, disabled, and deleted computers.
 * Run against a **test/staging OU** before using in production.
 * Schedule the script regularly to keep stale computer accounts in check.
-* Back up Active Directory before running the delete phase — removal is irreversible.
+* Back up Active Directory before running the delete phase; removal is irreversible.
 
 ---
 

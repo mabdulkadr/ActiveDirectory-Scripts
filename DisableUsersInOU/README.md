@@ -20,17 +20,17 @@ For Administrators executing bulk access revocations, offboarding, or OU cleanup
 
 # 📖 Overview
 
-**Disable Users in OU** processes every **enabled** user account inside a configured Organizational Unit and disables it. It writes a formatted log for each operation, handles errors gracefully, and finishes with a summary block showing total accounts found, successfully disabled users, and failures. Set `$ExportCSV = $true` to also emit a CSV report of all attempted actions.
+Disable Users in OU finds every enabled account in a chosen OU and disables it. It logs each result, keeps going when an error occurs, and ends with counts of accounts found, disabled, and failed. Set `$ExportCSV = $true` to write a CSV of all attempted actions.
 
 ---
 
 # ✨ Features
 
-* **Bulk disable** — disables all enabled user accounts in the target OU
-* **Per-user logging** — success and failure recorded per account with formatted output
-* **Run summary** — totals for accounts found, disabled, and failed
-* **Optional CSV export** — full report of attempted actions
-* **Simple configuration** — set the `$OU` variable and run
+* Disables all enabled accounts in the target OU
+* Records success or failure for each account
+* Ends with totals for accounts found, disabled, and failed
+* Can write a CSV of every attempted action
+* Configuration is a couple of variables at the top of the script
 
 ---
 
@@ -62,7 +62,7 @@ $ExportCSV = $true
 
 # ⚙️ Parameters
 
-This script takes **no parameters** — configure the variables at the top of the script.
+This script takes **no parameters**. Configure the variables at the top of the script.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -100,7 +100,7 @@ The PowerShell cmdlets that drive the bulk-disable workflow.
 # 🛡 Operational Notes
 * Log file: `C:\Logs\DisableUsers_yyyy-MM-dd_HH-mm-ss.log`.
 * CSV report (when enabled): `C:\Reports\DisabledUsers_yyyyMMdd_HHmmss.csv`.
-* The action is **irreversible** for an affected login — users must be re-enabled manually if disabled by mistake.
+* The action is **irreversible** for an affected login; users must be re-enabled manually if disabled by mistake.
 * Review the OU variable carefully before running in production; consider a staging OU first.
 
 ---

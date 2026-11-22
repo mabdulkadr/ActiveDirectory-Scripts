@@ -20,17 +20,17 @@ For Administrators identifying stale or inactive accounts and producing user inv
 
 # 📖 Overview
 
-**Get AD Users Details** queries every user in a configured Organizational Unit and reports key account attributes — name, logon, enabled state, creation, modification, last logon, days inactive, and password last set. Results display in the console sorted by inactivity (most inactive first) and are also exported to a CSV on the desktop for reporting and stale-account cleanup.
+Get AD Users Details reads every user in a chosen OU and reports their name, logon name, enabled state, creation and modification dates, last logon, days inactive, and password age. The console lists the most inactive users first, and the same data goes to a CSV on the desktop for reporting or stale-account cleanup.
 
 ---
 
 # ✨ Features
 
-* **OU-scoped inventory** — name, SamAccountName, enabled state, and date attributes per user
-* **Inactivity calculation** — days since last logon, including "Never Logged In" cases
-* **Sorted console output** — most inactive users first for quick triage
-* **Desktop CSV export** — full attribute set ready for documentation and review
-* **Lightweight run** — single query per user, no modifications to AD
+* An inventory limited to the OU you choose, with names, logon names, enabled state, and dates
+* Days since last logon, including accounts that never logged in
+* Console output sorted so the most inactive accounts appear first
+* A desktop CSV with the full set of attributes
+* Read-only: one query per user, with no changes to AD
 
 ---
 
@@ -61,7 +61,7 @@ $OU = "OU=Operation Dept,DC=QassimU,DC=local"
 
 # ⚙️ Parameters
 
-This script takes **no parameters** — set the `$OU` variable inside the script before running.
+This script takes **no parameters**. Set the `$OU` variable inside the script before running.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -97,7 +97,7 @@ The PowerShell cmdlets that drive the user inventory.
 
 # 🛡 Operational Notes
 * Output CSV: `C:\Users\<YourName>\Desktop\OperationDept_UserDetails.csv`.
-* The script is **read-only** — it collects attributes and exports; no accounts are modified.
+* The script is **read-only**: it collects attributes and exports, and changes no accounts.
 * Adjust the `$OU` variable for your environment before each run.
 * Large OUs may take time on the first pass; results repeat identically until AD data changes.
 

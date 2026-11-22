@@ -21,7 +21,7 @@ Turns complex PowerShell operations into a friendly, color-coded interface for f
 
 # 📖 Overview
 
-**Join Unjoin Computer Tool** is a PowerShell WPF GUI built for Helpdesk teams to safely manage computer objects across **Active Directory (AD)** and **Microsoft Entra ID (Azure AD)**. It covers domain join and disjoin (with OU selection), AD object deletion with safeguards, Entra ID join and leave, Intune enrollment, and a live device information snapshot — all with confirmation prompts and color-coded status indicators.
+**Join Unjoin Computer Tool** is a PowerShell WPF GUI built for Helpdesk teams to safely manage computer objects across **Active Directory (AD)** and **Microsoft Entra ID (Azure AD)**. It covers domain join and disjoin (with OU selection), AD object deletion with safeguards, Entra ID join and leave, Intune enrollment, and a live device information snapshot, all with confirmation prompts and color-coded status indicators.
 
 Two builds ship side by side: **v1 (Classic)** and **v2 (Enhanced)** with credential validation, DC reachability checks, and a Message Center log.
 
@@ -29,11 +29,11 @@ Two builds ship side by side: **v1 (Classic)** and **v2 (Enhanced)** with creden
 
 ![Main Window v1](Screenshot1.png)
 
-*Main interface v1 — Classic build.*
+*Main interface v1 (Classic build).*
 
 ![Main Window v2](Screenshot2.png)
 
-*Main interface v2 — Enhanced build with Message Center and validation pills.*
+*Main interface v2 (Enhanced build with Message Center and validation pills).*
 
 ---
 
@@ -92,11 +92,11 @@ JoinUnjoinComputerTool-GUI
 # 🖥️ Usage
 
 ### Main Window
-* **Join** — Select OU and credentials, then join the computer to AD.
-* **Disjoin** — Remove the computer from AD to WORKGROUP.
-* **Delete AD Object** — Remove the computer account from AD with confirmation.
-* **Entra ID** — Join or leave Microsoft Entra ID via dsregcmd controls.
-* **Device Info** — Refresh to view domain, IP, Entra ID, SCCM, and Co-Management status.
+* Join: select an OU and enter credentials, then join the computer to AD.
+* Disjoin: remove the computer from AD and move it to WORKGROUP.
+* Delete AD Object: remove the computer account from AD after confirmation.
+* Entra ID: join or leave Microsoft Entra ID with the dsregcmd controls.
+* Device Info: refresh to view domain, IP, Entra ID, SCCM, and Co-Management status.
 
 ### Exit Codes
 | Code | Status |
@@ -136,7 +136,7 @@ The PowerShell cmdlets and tools that drive the GUI operations.
 # 🛡 Operational Notes
 * Always use **v2** for daily support tasks unless debugging v1.
 * Use accounts with **least privilege** (OU join rights only) where possible.
-* Confirm before deleting objects from AD — deletion is irreversible.
+* Confirm before deleting objects from AD; deletion is irreversible.
 * If the script fails to launch, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force` or use the `.exe` build.
 * For Entra ID failures, verify network and run `dsregcmd /status` manually; for Co-Management issues, check the `CoManagementFlags` registry key.
 

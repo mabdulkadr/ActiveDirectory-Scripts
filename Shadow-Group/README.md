@@ -2,7 +2,7 @@
 
 # 💻 Shadow Group
 
-**Synchronizes an Active Directory group with all users from one or more OUs — adding newcomers and removing departed users for policy-grade membership.**
+**Keeps an Active Directory group in sync with one or more OUs, adding new users and removing those who left.**
 
 For Administrators enforcing group-based policies (such as Fine-Grained Password Policies) that require exact OU-to-group alignment.
 
@@ -28,12 +28,12 @@ Run it first in log-only mode to preview changes, then enable modifications and 
 
 # ✨ Features
 
-* **Multi-OU sync** — mirrors users from several OUs into one shadow group
-* **Enabled-users filter** — optionally include only enabled accounts
-* **Child-OU control** — include or exclude nested OUs per configuration
-* **Dry-run mode** — logs planned actions without touching AD
-* **Change cap** — limits additions/removals per execution as a safety valve
-* **Task-ready** — designed to run as a scheduled task from a Domain Controller
+* Mirrors users from several OUs into one shadow group
+* Can include only enabled accounts
+* Includes or excludes child OUs based on the configuration
+* A dry-run mode logs planned changes without touching AD
+* A cap limits how many users are added or removed per run
+* Built to run as a scheduled task on a domain controller
 
 ---
 
@@ -71,7 +71,7 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\Path\To\ShadowGroup.ps1"
 
 # ⚙️ Parameters
 
-All settings live in the **PARAMETERS** section at the top of the script — no command-line parameters.
+All settings live in the **PARAMETERS** section at the top of the script; the script takes no command-line parameters.
 
 | Variable | Type | Description |
 |----------|------|-------------|
@@ -115,10 +115,10 @@ The PowerShell cmdlets that drive the shadow-group sync.
 ---
 
 # 🛡 Operational Notes
-* If the shadow group does not exist, the script exits with an error — create it first.
-* If `$MaxChanges` is exceeded, further synchronization requires additional runs.
-* Logs include added/removed users, execution timestamps, and errors or warnings.
-* For scheduled runs: **Run whether user is logged on or not** + **Run with highest privileges**.
+* Create the shadow group before the first run. The script stops with an error if it is missing
+* Changes beyond `$MaxChanges` wait for the next run
+* The log records added and removed users, timestamps, and any warnings or errors
+* For a scheduled task, set "Run whether user is logged on or not" and "Run with highest privileges"
 
 ---
 

@@ -20,19 +20,19 @@ For IT teams that need a full inventory of AD groups for auditing, cleanup, and 
 
 # 📖 Overview
 
-**AD Groups Report** enumerates all groups in an Active Directory domain and exports a timestamped CSV containing group metadata, member-type counts (User, Group, Contact), nested group names, and inactivity flags computed from the last group modification date.
+AD Groups Report lists every group in an Active Directory domain and writes a timestamped CSV. Along with group metadata, the file includes counts of user, group, and contact members, nested group names, and inactivity flags based on the last modification date.
 
-The script optionally self-installs the RSAT **ActiveDirectory** tools when the module is missing, so the report runs on a fresh admin workstation without manual prerequisites.
+If the ActiveDirectory module is missing, the script tries to install the RSAT tools itself. That still needs an elevated session.
 
 ---
 
 # ✨ Features
 
-* **Full group inventory** — name, DN, group type, email, description, and locality attributes
-* **Inactivity flags** — `NeverModified` and `IsLikelyInactive` derived from modification timestamps
-* **Member-type counts** — breakdown of members by User, Group, and Contact for each group
-* **Nesting details** — nested group names and detail strings included per group
-* **CSV + log export** — timestamped report and a matching execution log
+* Full inventory with name, DN, group type, email, description, and locality attributes
+* `NeverModified` and `IsLikelyInactive` flags based on modification timestamps
+* Member counts split into users, groups, and contacts per group
+* Nested group names and detail strings
+* A timestamped CSV plus a matching log file
 
 ---
 
@@ -80,7 +80,7 @@ This script takes **no parameters**. Replace the hardcoded configuration in the 
 * PowerShell **5.1 or later**
 
 ### Permissions
-* **ActiveDirectory** module (RSAT) — the script attempts to install it when missing
+* **ActiveDirectory** module (RSAT). The script attempts to install it when missing
 * Read access to Active Directory groups
 * Run from an **elevated** PowerShell session
 
@@ -99,10 +99,10 @@ The PowerShell cmdlets that drive the group report.
 ---
 
 # 🛡 Operational Notes
-* Output lands in `C:\ADGroupsReport\ADGroupsReport_<timestamp>.csv` with a matching `.log` file.
-* The script is **read-only** — it queries groups and members but never modifies objects.
-* In very large domains the first pass over all groups can take several minutes; run it outside business hours.
-* Module installation requires elevation — run elevated or pre-install RSAT to avoid a stalled run.
+* The report goes to `C:\ADGroupsReport\ADGroupsReport_<timestamp>.csv`, with a matching `.log` file
+* The script only reads groups and members. It does not change AD objects
+* A first pass over a very large domain can take several minutes. Run it outside business hours
+* Installing the module needs elevation. Run elevated or install RSAT first to avoid a stalled run
 
 ---
 

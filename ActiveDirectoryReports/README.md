@@ -2,9 +2,9 @@
 
 # 💻 Active Directory Reports
 
-**Generates modern, responsive HTML reports for your entire Active Directory environment from a single menu-driven console script.**
+**Builds HTML reports for your whole Active Directory environment from one menu-driven console script.**
 
-For Administrators who need a clean, timestamped snapshot of computers, domain controllers, workstations, servers, and account status — without installing reporting suites.
+For administrators who want a timestamped snapshot of computers, domain controllers, workstations, servers, and account status without installing a reporting suite.
 
 [![Mode](https://img.shields.io/badge/Mode-CLI-334155?style=for-the-badge)](#-usage)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://learn.microsoft.com/en-us/powershell/)
@@ -20,19 +20,19 @@ For Administrators who need a clean, timestamped snapshot of computers, domain c
 
 # 📖 Overview
 
-**Active Directory Reports** is a single PowerShell script that produces modern, responsive, card-based HTML reports for an Active Directory environment. A console menu lets you pick one of six built-in reports — or run all of them — with every report saved into a styled, timestamped folder for audit and documentation purposes.
+Active Directory Reports is one PowerShell script that builds six HTML reports about an AD environment. A console menu lets you pick a report or run them all. Each run writes its output to a timestamped folder, which makes it easy to keep a history for audits.
 
-The script works in both classic PowerShell and PowerShell ISE, depends only on the RSAT Active Directory module, and needs no additional tooling.
+The script runs in PowerShell and PowerShell ISE. Its only dependency is the RSAT Active Directory module.
 
 ---
 
 # ✨ Features
 
-* **Six built-in reports** — computers, domain controllers, workstations, servers, account status, and OS-based grouping
-* **Menu-driven interface** — type a number to pick a report, or select "Run ALL Reports"
-* **Modern HTML output** — responsive, mobile-friendly, card-based layouts with sticky headers
-* **Timestamped results** — every run is preserved in `C:\ADReports`
-* **Minimal prerequisites** — only the RSAT Active Directory PowerShell module
+* Six reports: computers, domain controllers, workstations, servers, account status, and OS grouping
+* A numbered console menu, plus an option to run every report
+* HTML with card layouts and sticky headers that also reads well on a phone
+* Timestamped output under `C:\ADReports`, so earlier runs are kept
+* Only the RSAT Active Directory module is required
 
 ---
 
@@ -69,7 +69,7 @@ ActiveDirectoryReports
 
 # ⚙️ Parameters
 
-This script takes **no parameters** — all report selection is driven through the interactive console menu.
+This script takes **no parameters**. Report selection is driven through the interactive console menu.
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -106,7 +106,7 @@ The PowerShell cmdlets that drive each report type.
 
 # 🛡 Operational Notes
 * All reports are saved to `C:\ADReports` and are timestamped, so multiple runs are preserved.
-* The script is **read-only** — it never modifies Active Directory objects.
+* The script is **read-only**: it never modifies Active Directory objects.
 * Data freshness depends on AD replication; the report reflects the DC that answered the query.
 * You can add an organization logo to reports by editing the `$CSS` and `Build-HtmlReport` section.
 

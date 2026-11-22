@@ -26,11 +26,11 @@ For Administrators who need to onboard batch users into a group without duplicat
 
 # ✨ Features
 
-* **CSV input** — reads a `UserID` column from the supplied CSV file
-* **UPN resolution** — appends the configured domain suffix to build a full user principal name
-* **Duplicate avoidance** — checks existing membership before every add
-* **Pre-add verification** — confirms the user object exists in AD before attempting the add
-* **Color-coded summary** — Added / Already in Group / Failed counts on completion
+* Reads a `UserID` column from the supplied CSV file
+* Appends the configured domain suffix to build a full user principal name
+* Checks existing membership before every add
+* Confirms the user object exists in AD before attempting the add
+* Shows a color-coded summary of Added / Already in Group / Failed counts on completion
 
 ---
 
@@ -104,9 +104,9 @@ The PowerShell cmdlets that drive the bulk-add workflow.
 
 # 🛡 Operational Notes
 * The CSV **must** contain a `UserID` column; any other column name produces zero matched users.
-* Set `$GroupName`, `$CsvPath`, and `$Domain` before running — the script terminates on a missing group.
+* Set `$GroupName`, `$CsvPath`, and `$Domain` before running; the script terminates on a missing group.
 * Verify the summary counts match expectations; users reported as **Failed** are never partially added.
-* The operation is **additive only** — no members are ever removed by this script.
+* The operation is **additive only**: this script never removes members.
 
 ---
 

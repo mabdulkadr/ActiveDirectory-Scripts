@@ -27,13 +27,13 @@ For IT operations and helpdesk teams that manage users, computers, groups, and D
 # ✨ Core Features
 
 ### 🔹 Get AD Health (`Get-ADHealth\`)
-* Domain Controller health check — DNS, ICMP, uptime, time sync, disk, services, and `DCDIAG`, delivered as an HTML report.
+* Domain Controller health check covering DNS, ICMP, uptime, time sync, disk, services, and `DCDIAG`, delivered as an HTML report.
 
 ### 🔹 Active Directory Reports (`ActiveDirectoryReports\`)
 * Six menu-driven HTML inventory reports: computers, Domain Controllers, workstations, servers, account status, and OS grouping.
 
 ### 🔹 AD Groups Report (`AD-GroupsReport\`)
-* Full group inventory CSV — metadata, member-type counts, nesting, and inactivity flags.
+* Full group inventory CSV with metadata, member-type counts, nesting, and inactivity flags.
 
 ### 🔹 Get AD Users Details (`Get-ADUsers-Details\`)
 * Ou-scoped user inventory with inactivity calculation and desktop CSV export.
@@ -223,12 +223,12 @@ WPF GUI for domain join/disjoin, AD object deletion, Entra ID enrollment, and de
 
 ### Permissions
 * **RSAT: Active Directory module** (`ActiveDirectory`) on the machine running the tool
-* Per-tool permissions are documented in each tool's own README — most scripts are **read-only**; the disable/delete/add tools require write rights in AD
+* Per-tool permissions are documented in each tool's own README. Most scripts are **read-only**; the disable/delete/add tools require write rights in AD
 
 ---
 
 # 🛡 Operational Notes
-* Each tool is **self-contained** — copy a folder, run the script, no shared dependencies.
+* Each tool is **self-contained**: copy a folder and run the script without shared dependencies.
 * Most scripts are **read-only**; always review the destructive tools (`DisableUsersInOU`, `Disable-InactiveComputers`, `Shadow-Group`) against a staging OU first.
 * Apply the per-tool security requirements from each README. Never hard-code credentials in these scripts.
 * The GUI tool (`JoinUnjoinComputerTool-GUI`) must be run from an **elevated** PowerShell session.

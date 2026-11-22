@@ -2,7 +2,7 @@
 
 # 💻 Get AD Health
 
-**Runs a comprehensive health check against all Domain Controllers — DNS, reachability, replication, disk, time sync — and delivers a card-style HTML report, optionally by email.**
+**Checks every domain controller for DNS, reachability, disk space, time sync, and replication issues, then writes an HTML report you can also send by email.**
 
 For IT operations teams that need a daily heartbeat of their Active Directory fleet.
 
@@ -22,17 +22,17 @@ For IT operations teams that need a daily heartbeat of their Active Directory fl
 
 **Get AD Health** enumerates every Domain Controller in one or more domains (or the entire forest), probes each one across DNS, ICMP, uptime, time synchronization, OS disk space, critical services (DNS, NTDS, NetLogon), and the `DCDIAG` suite, then summarizes each DC as **Healthy**, **Warning**, or **Critical**.
 
-Results are rendered as modern, email-safe HTML cards — saved to disk and optionally sent inline via SMTP so the on-call team sees the same layout in the report file and the email body.
+The results are written as HTML cards that work in email clients. The same layout goes to the saved file and the message body, so the on-call team sees the same report either way.
 
 ---
 
 # ✨ Features
 
-* **Per-DC collectors** — DNS, ping, uptime, time drift, disk %, services, and `DCDIAG`
-* **Healthy / Warning / Critical** verdicts from binary checks and tunable numeric thresholds
-* **Forest or targeted scope** — scan the whole forest or specific domains
-* **Card-style HTML** — email-safe inline CSS with badges and meters
-* **SMTP delivery** — same layout inline in email and on disk, ready for Task Scheduler
+* Collects DNS, ping, uptime, time drift, disk usage, service state, and `DCDIAG` results for each DC
+* Labels each DC Healthy, Warning, or Critical using checks and thresholds you can tune
+* Scans the whole forest or only the domains you name
+* Writes HTML with inline CSS, badges, and meters that email clients can display
+* Can send the same report by SMTP, which makes it easy to run from Task Scheduler
 
 ---
 
@@ -121,7 +121,7 @@ The PowerShell cmdlets that drive the health checks.
 # 🛡 Operational Notes
 * Output: `ADHealthReport_yyyyMMdd_HHmmss.html` in `ReportPath`.
 * Tunable thresholds in the script (uptime warn 24h, disk free 5/30%, time drift 0.5/1.0s).
-* Never hard-code credentials — prefer `Get-Credential`, Windows Credential Manager, or SecretManagement.
+* Never hard-code credentials; prefer `Get-Credential`, Windows Credential Manager, or SecretManagement.
 * The script runs cleanly under Task Scheduler as a service account with AD/WMI permissions.
 * `Send-MailMessage` is deprecated upstream; a future revision may migrate to Graph SendMail.
 
